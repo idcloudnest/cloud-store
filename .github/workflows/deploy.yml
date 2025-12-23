@@ -25,12 +25,14 @@ jobs:
           docker --version
           docker compose version
 
-      - name: Stop existing containers
-        run: |
-          docker compose -f docker-compose.prod.yml down
+      # - name: Stop existing containers
+      #   run: |
+      #     docker compose -f docker-compose.prod.yml down
 
       - name: Build & Deploy (Docker Compose)
         run: |
+          export APP_KEY=${{ secrets.APP_KEY }}
+
           docker compose -f docker-compose.prod.yml up -d --build
 
       - name: Cleanup unused images
