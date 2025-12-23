@@ -15,7 +15,7 @@ if [ -z "$APP_KEY" ]; then
 fi
 
 # Migration & seed
-# php artisan migrate --force
+php artisan migrate --force
 # php artisan db:seed --force
 
 # Passport (aman dijalankan berulang)
