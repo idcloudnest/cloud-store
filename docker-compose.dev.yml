@@ -1,0 +1,20 @@
+services:
+  cloud-store:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: store:latest
+    container_name: cloud-store
+    ports:
+      - "80:80"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - core
+
+networks:
+  core:
+    external: true

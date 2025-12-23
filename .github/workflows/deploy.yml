@@ -1,0 +1,37 @@
+name: Auto Deploy (Self-Hosted)
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Show runner info
+        run: |
+          whoami
+          hostname
+          pwd
+
+      - name: Docker info
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Stop existing containers
+        run: |
+          docker compose -f docker-compose.prod.yml down
+
+      - name: Build & Deploy (Docker Compose)
+        run: |
+          docker compose -f docker-compose.prod.yml up -d --build
+
+      - name: Cleanup unused images
+        run: |
+          docker image prune -f
