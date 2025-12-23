@@ -8,10 +8,16 @@ services:
     ports:
       - "80:80"
     environment:
+      - APP_KEY=${APP_KEY}
+      - DB_CONNECTION=${DB_CONNECTION}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
       - APP_NAME="Cloud Store"
       - APP_ENV=production
       - APP_DEBUG="false"
-      - APP_KEY=${APP_KEY}
       - APP_TIMEZONE="UTC"
       - APP_URL=http://localhost
       - APP_LOCALE=id
@@ -24,7 +30,6 @@ services:
       - LOG_STACK=single
       - LOG_DEPRECATIONS_CHANNEL=null
       - LOG_LEVEL=debug
-      - DB_CONNECTION=sqlite
       - SESSION_DRIVER=database
       - SESSION_LIFETIME=120
       - SESSION_ENCRYPT=false

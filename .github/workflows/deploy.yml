@@ -32,6 +32,12 @@ jobs:
       - name: Build & Deploy (Docker Compose)
         run: |
           export APP_KEY="${{ secrets.APP_KEY }}"
+          export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+          export DB_USERNAME="${{ secrets.DB_USERNAME }}"
+          export DB_CONNECTION="${{ vars.DB_CONNECTION }}"
+          export DB_DATABASE="${{ vars.DB_DATABASE }}"
+          export DB_HOST="${{ vars.DB_HOST }}"
+          export DB_PORT="${{ vars.DB_PORT }}"
 
           docker compose -f docker-compose.prod.yml up -d --build
 
