@@ -48,6 +48,8 @@ return new class extends Migration
 			$table->string('sn')->nullable()->comment("bukti / token listrik / serial number topup");
 			$table->text('provider_message')->nullable()->comment("alasan gagal (misal: nomor salah");
 
+			$table->string('snap_token')->nullable()->comment("Snap token midtrans");
+
 			$table->timestamps();
 		});
 	}

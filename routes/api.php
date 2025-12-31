@@ -22,9 +22,12 @@ Route::prefix('webhook')
 	Route::controller(\App\Http\Controllers\Api\Webhook\WebhookDigiflazzController::class)
 	->prefix('digiflazz')
 	->group(function () {
-		Route::get('test', function () {
-			return \Illuminate\Support\Str::random(32);
-		});
+		Route::post('callback', 'handle')->middleware('digiflazz.auth');
+	});
+
+	Route::controller(\App\Http\Controllers\Api\Webhook\WebhookMidtransController::class)
+	->prefix('midtrans')
+	->group(function () {
 		Route::post('callback', 'handle')->middleware('digiflazz.auth');
 	});
 });

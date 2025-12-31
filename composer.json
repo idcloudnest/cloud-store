@@ -11,6 +11,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "laravel/ui": "^4.6",
+        "midtrans/midtrans-php": "^2.6",
         "timwassenburg/laravel-service-generator": "^1.0"
     },
     "require-dev": {

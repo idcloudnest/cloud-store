@@ -43,6 +43,11 @@ services:
       - REDIS_HOST=127.0.0.1
       - REDIS_PASSWORD=null
       - REDIS_PORT=6379
+      - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY}
+      - MIDTRANS_CLIENT_KEY=${MIDTRANS_CLIENT_KEY}
+      - MIDTRANS_IS_PRODUCTION=${MIDTRANS_IS_PRODUCTION}
+      - MIDTRANS_IS_SANITIZED=true
+      - MIDTRANS_IS_3DS=true
     restart: always
     networks:
       - core

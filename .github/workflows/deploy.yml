@@ -20,10 +20,10 @@ jobs:
           hostname
           pwd
 
-      - name: Docker info
-        run: |
-          docker --version
-          docker compose version
+      # - name: Docker info
+      #   run: |
+      #     docker --version
+      #     docker compose version
 
       # - name: Stop existing containers
       #   run: |
@@ -39,6 +39,9 @@ jobs:
           export DB_DATABASE="${{ vars.DB_DATABASE }}"
           export DB_HOST="${{ vars.DB_HOST }}"
           export DB_PORT="${{ vars.DB_PORT }}"
+          export MIDTRANS_CLIENT_KEY="${{ secrets.MIDTRANS_CLIENT_KEY }}"
+          export MIDTRANS_IS_PRODUCTION="${{ secrets.MIDTRANS_IS_PRODUCTION }}"
+          export MIDTRANS_SERVER_KEY="${{ secrets.MIDTRANS_SERVER_KEY }}"
 
           docker compose -f docker-compose.prod.yml up -d --build
 

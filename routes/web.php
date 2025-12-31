@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 
 Route::as('pages.')
-// ->prefix('/')
 ->group(function () {
 	Route::controller(\App\Http\Controllers\Pages\HomeController::class)
 	->group(function () {
@@ -20,12 +19,6 @@ Route::as('pages.')
 		Route::get('invoices', 'invoices')->name('invoices');
 	});
 });
-
-Route::get('hash', function () {
-	return Hash::make('530296');
-});
-
-
 
 Route::controller(App\Http\Controllers\Auth\ResetPasswordController::class)
 ->group(function () {
@@ -59,6 +52,20 @@ Route::prefix('auth')->as('auth.')
 	});
 });
 
+
+Route::controller(App\Http\Controllers\TransactionController::class)
+->prefix('transaction')
+->as('transaction.')
+->group(function () {
+	Route::post('checkout', 'checkout')->name('checkout');
+});
+
+Route::controller(App\Http\Controllers\ProductController::class)
+->as('topup.')
+->prefix('topup')
+->group(function () {
+	Route::get('/{slug}', 'topup')->name('detail');
+});
 // Route::middleware('role:member,reseller')->name('member.')->group(function () {
 
 Route::as('member.')
@@ -136,12 +143,12 @@ Route::middleware(['auth', 'is_active'])->group(function () {
 
 
 // Route dinamis: menangkap apapun setelah /topup/ sebagai 'slug'
-Route::get('/topup/{slug}', function ($slug) {
-	// Di real app, kamu akan query database di sini berdasarkan slug
-	// $product = Product::where('slug', $slug)->first();
+// Route::get('/topup/{slug}', function ($slug) {
+// 	// Di real app, kamu akan query database di sini berdasarkan slug
+// 	// $product = Product::where('slug', $slug)->first();
 
-	return view('pages.topup.detail', ['slug' => $slug]);
-})->name('topup.detail');
+// 	return view('pages.topup.detail', ['slug' => $slug]);
+// })->name('topup.detail');
 
 // Halaman Detail (Contoh)
 Route::get('/topup/mobile-legends', function () {

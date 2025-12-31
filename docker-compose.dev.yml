@@ -6,7 +6,7 @@ services:
     image: store:latest
     container_name: cloud-store
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
       - .:/app
     env_file:
