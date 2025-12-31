@@ -6,7 +6,7 @@ services:
     image: store-prod:latest
     container_name: cloud-store
     ports:
-      - "80:80"
+      - "8000:80"
     environment:
       - APP_KEY=${APP_KEY}
       - DIGIFLAZZ_SECRET_KEY=${DIGIFLAZZ_SECRET_KEY}

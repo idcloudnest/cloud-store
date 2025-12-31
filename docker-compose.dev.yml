@@ -9,7 +9,7 @@ services:
     image: store-dev:latest
     container_name: cloud-store-dev
     ports:
-      - "8000:80"
+      - "8001:80"
     volumes:
       - .:/app
     env_file:
