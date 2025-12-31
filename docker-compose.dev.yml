@@ -1,10 +1,13 @@
 services:
-  cloud-store:
+  cloud-store-dev:
     build:
       context: .
+      args:
+        UID: ${UID}
+        GID: ${GID}
       dockerfile: Dockerfile.dev
     image: store-dev:latest
-    container_name: cloud-store
+    container_name: cloud-store-dev
     ports:
       - "8000:80"
     volumes:
