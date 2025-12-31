@@ -32,6 +32,7 @@ jobs:
       - name: Build & Deploy (Docker Compose)
         run: |
           export APP_KEY="${{ secrets.APP_KEY }}"
+          export DIGIFLAZZ_SECRET_KEY="${{ secrets.DIGIFLAZZ_SECRET_KEY }}"
           export DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
           export DB_USERNAME="${{ secrets.DB_USERNAME }}"
           export DB_CONNECTION="${{ vars.DB_CONNECTION }}"
