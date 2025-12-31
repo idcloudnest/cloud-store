@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    image: store:latest
+    image: store-dev:latest
     container_name: cloud-store
     ports:
       - "8000:80"
