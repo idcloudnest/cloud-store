@@ -4,10 +4,11 @@ services:
       context: .
       dockerfile: Dockerfile.prod
     image: store-prod:latest
-    container_name: cloud-store
+    container_name: cloud-store-prod
     ports:
       - "8000:80"
     environment:
+      - TYPE=WEB
       - APP_KEY=${APP_KEY}
       - DIGIFLAZZ_SECRET_KEY=${DIGIFLAZZ_SECRET_KEY}
       - DB_CONNECTION=${DB_CONNECTION}
@@ -16,11 +17,12 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      - FIREBASE_CREDENTIALS=${FIREBASE_CREDENTIALS}
       - APP_NAME="Cloud Store"
       - APP_ENV=production
       - APP_DEBUG="false"
       - APP_TIMEZONE="UTC"
-      - APP_URL=http://localhost
+      - APP_URL=https://store.idcloudnest.com
       - APP_LOCALE=id
       - APP_FALLBACK_LOCALE=en
       - APP_FAKER_LOCALE=en_US
@@ -31,7 +33,7 @@ services:
       - LOG_STACK=single
       - LOG_DEPRECATIONS_CHANNEL=null
       - LOG_LEVEL=debug
-      - SESSION_DRIVER=database
+      - SESSION_DRIVER=redis
       - SESSION_LIFETIME=120
       - SESSION_ENCRYPT=false
       - SESSION_PATH=/
@@ -39,9 +41,9 @@ services:
       - BROADCAST_CONNECTION=log
       - FILESYSTEM_DISK=local
       - QUEUE_CONNECTION=database
-      - REDIS_CLIENT=phpredis
-      - REDIS_HOST=127.0.0.1
-      - REDIS_PASSWORD=null
+      - REDIS_CLIENT=predis
+      - REDIS_HOST=core-redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=6379
       - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY}
       - MIDTRANS_CLIENT_KEY=${MIDTRANS_CLIENT_KEY}
@@ -50,7 +52,23 @@ services:
       - MIDTRANS_IS_3DS=true
       - UID=1002
       - GID=1003
+      - DIGIFLAZZ_MODE=production
     restart: always
+    command: php artisan serve --host=0.0.0.0 --port=80
+    networks:
+      - core
+
+  cloud-store-queue:
+    image: store-prod:latest
+    container_name: cloud-store-queue-prod
+    environment:
+      - TYPE=QUEUE
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: always
+    command: php artisan queue:work --queue=transactions,default --tries=3 --timeout=90
     networks:
       - core
 

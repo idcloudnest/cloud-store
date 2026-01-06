@@ -6,6 +6,8 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Log;
+use App\Models\Provider;
+
 class VerifyDigiflazzSignature
 {
 	/**
@@ -15,7 +17,10 @@ class VerifyDigiflazzSignature
 	 */
 	public function handle(Request $request, Closure $next): Response
 	{
-		$secretKey = env('DIGIFLAZZ_SECRET_KEY');
+		$secretKey = Cache::remember('provider_secret_digiflazz', 3600, function () {
+            $provider = Provider::where('code', 'digiflazz')->first();
+            return $provider ? $provider->secret_key : env('DIGIFLAZZ_SECRET_KEY');
+        });
 
 		// Header ini berisi hasil hash yang dikirim Digiflazz
 		$incomingSignature = $request->header('X-Hub-Signature');

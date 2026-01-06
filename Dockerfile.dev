@@ -33,6 +33,7 @@ RUN useradd -u ${UID} -m dwi
 
 # Copy source code
 COPY . /app
+COPY ~/cloud_nest_store.json /app/storage/app
 
 RUN chown -R ${UID}:${GID} /app
 
