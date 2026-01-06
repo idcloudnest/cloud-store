@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Top Up Game - ID Cloud Store')
+@section('title', 'Top Up Game - Cloud Nest Store')
 
 @push('styles')
 <style>

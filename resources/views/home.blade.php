@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>ID Cloud Store - Topup Games & Voucher</title>
+	<title>Cloud Nest Store - Topup Games & Voucher</title>
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -438,7 +438,7 @@
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-5 mb-4">
-					<h5><i class="fas fa-cloud me-2"></i>ID CLOUD STORE</h5>
+					<h5><i class="fas fa-cloud me-2"></i>CLOUD NEST STORE</h5>
 					<p class="small">Platform Top Up Game tercepat dan terpercaya. Kami menyediakan berbagai metode pembayaran untuk memudahkan transaksi Anda.</p>
 				</div>
 				<div class="col-lg-3 mb-4">
@@ -458,7 +458,7 @@
 			</div>
 		</div>
 		<div class="footer-bottom text-center">
-			<small>&copy; 2023 ID Cloud Store. All Rights Reserved.</small>
+			<small>&copy; 2023 Cloud Nest Store. All Rights Reserved.</small>
 		</div>
 	</footer>
 

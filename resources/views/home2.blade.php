@@ -495,7 +495,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ID Cloud Store - Topup Games & Voucher</title>
+    <title>Cloud Nest Store - Topup Games & Voucher</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -722,7 +722,7 @@
 
     <section class="hero-section">
         <div class="container mt-5">
-            <h1 class="hero-title">ID Cloud Store</h1>
+            <h1 class="hero-title">Cloud Nest Store</h1>
             <p class="text-white-50 fs-5 mb-4">Platform Top Up Game & PPOB Termurah Se-Indonesia</p>
 
             <div class="d-flex justify-content-center flex-wrap gap-2" id="category-filters">
@@ -917,7 +917,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-5 col-md-12 mb-4 mb-md-0">
-                    <h5><i class="fas fa-cloud me-2"></i>ID CLOUD STORE</h5>
+                    <h5><i class="fas fa-cloud me-2"></i>CLOUD NEST STORE</h5>
                     <p>
                         Penyedia layanan Top Up Game, Pulsa, dan PPOB terpercaya sejak 2023.
                         Transaksi aman, proses instan, dan layanan pelanggan responsif 24 Jam.
@@ -959,7 +959,7 @@
 
         <div class="footer-copyright text-center">
             <div class="container">
-                © 2023 <span class="text-primary fw-bold">ID Cloud Store</span>. All Rights Reserved.
+                © 2023 <span class="text-primary fw-bold">Cloud Nest Store</span>. All Rights Reserved.
             </div>
         </div>
     </footer>
@@ -992,7 +992,7 @@
                     alert("Harap lengkapi formulir sebelum membeli!");
                 } else {
                     $('#orderModal').modal('hide');
-                    alert("Terima kasih! Pesanan " + nominal + " untuk ID Cloud Store sedang diproses.");
+                    alert("Terima kasih! Pesanan " + nominal + " untuk Cloud Nest Store sedang diproses.");
                 }
             });
         });

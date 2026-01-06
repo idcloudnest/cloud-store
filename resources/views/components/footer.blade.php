@@ -2,7 +2,7 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-5 mb-4">
-                <h5><i class="fas fa-cloud me-2"></i>ID CLOUD STORE</h5>
+                <h5><i class="fas fa-cloud me-2"></i>CLOUD NEST STORE</h5>
                 <p class="small text-muted" style="text-align: justify;">
                     Platform penyedia produk digital terlengkap dan terpercaya.
                     Mulai dari Top Up Game, Pulsa, Paket Data, Voucher, hingga Token PLN
@@ -39,6 +39,6 @@
     </div>
 
     <div class="footer-bottom text-center">
-        <small>&copy; {{ date('Y') }} ID Cloud Store. All Rights Reserved.</small>
+        <small>&copy; {{ date('Y') }} Cloud Nest Store. All Rights Reserved.</small>
     </div>
 </footer>

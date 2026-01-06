@@ -149,7 +149,7 @@
 				<div class="policy-header-bg">
 					<h1 class="display-5 fw-bold text-primary-gradient mb-3">Syarat & Ketentuan</h1>
 					<p class="text-muted mb-0" style="font-size: 1.1rem;">
-						Harap membaca kebijakan ini dengan saksama sebelum melakukan transaksi di <strong class="text-primary-gradient">ID Cloud Store</strong>.
+						Harap membaca kebijakan ini dengan saksama sebelum melakukan transaksi di <strong class="text-primary-gradient">Cloud Nest Store</strong>.
 					</p>
 				</div>
 
@@ -164,7 +164,7 @@
 
 					<h3 class="sub-title"><i class="fas fa-cube me-2 text-primary"></i> Umum</h3>
 					<ul class="policy-list">
-						<li>ID Cloud Store bertindak sebagai perantara antara pembeli dengan penyedia layanan operator (provider).</li>
+						<li>Cloud Nest Store bertindak sebagai perantara antara pembeli dengan penyedia layanan operator (provider).</li>
 						<li>Hal-hal seperti gangguan sinyal, gangguan server operator, dan kesalahan input data oleh pengguna berada di luar kendali kami.</li>
 					</ul>
 
