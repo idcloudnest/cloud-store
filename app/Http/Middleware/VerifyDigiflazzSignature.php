@@ -18,9 +18,10 @@ class VerifyDigiflazzSignature
 	public function handle(Request $request, Closure $next): Response
 	{
 		$secretKey = Cache::remember('provider_secret_digiflazz', 3600, function () {
-            $provider = Provider::where('code', 'digiflazz')->first();
-            return $provider ? $provider->secret_key : env('DIGIFLAZZ_SECRET_KEY');
-        });
+			$provider = Provider::where('code', 'digiflazz')->first();
+			// return $provider ? $provider->secret_key : env('DIGIFLAZZ_SECRET_KEY');
+			return $provider ? $provider->secret_key : null;
+		});
 
 		// Header ini berisi hasil hash yang dikirim Digiflazz
 		$incomingSignature = $request->header('X-Hub-Signature');
