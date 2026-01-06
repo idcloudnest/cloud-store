@@ -19,8 +19,7 @@ class VerifyDigiflazzSignature
 	{
 		$secretKey = Cache::remember('provider_secret_digiflazz', 3600, function () {
 			$provider = Provider::where('code', 'digiflazz')->first();
-			// return $provider ? $provider->secret_key : env('DIGIFLAZZ_SECRET_KEY');
-			return $provider ? $provider->secret_key : null;
+			return $provider ? $provider->secret_key : env('DIGIFLAZZ_SECRET_KEY');
 		});
 
 		// Header ini berisi hasil hash yang dikirim Digiflazz
