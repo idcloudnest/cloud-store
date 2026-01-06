@@ -35,7 +35,7 @@
 				<i class="fa-solid fa-cloud-bolt"></i>
 			</div>
 			{{-- <span class="d-none d-sm-inline" style="color: var(--text-main);">ID<span class="text-primary">Cloud</span></span> --}}
-			<span style="color: var(--text-main);">ID Cloud</span><span class="text-primary">Store</span>
+			<span style="color: var(--text-main);">Cloud Nest</span><span class="text-primary">Store</span>
 		</a>
 
 		{{-- TOGGLER MOBILE --}}
