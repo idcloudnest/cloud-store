@@ -60,7 +60,7 @@ services:
     networks:
       - core
 
-  cloud-store-queue:
+  cloud-store-queue-prod:
     image: store-prod:latest
     container_name: cloud-store-queue-prod
     environment:

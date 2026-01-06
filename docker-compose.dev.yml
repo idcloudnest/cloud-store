@@ -21,7 +21,7 @@ services:
     networks:
       - core
 
-  cloud-store-queue:
+  cloud-store-queue-dev:
     image: store-dev:latest
     container_name: cloud-store-queue
     # command: php artisan queue:work --tries=3 --timeout=90
