@@ -17,6 +17,7 @@ return new class extends Migration
 			// --- Identitas Utama ---
 			$table->string('name');
 			$table->string('email')->unique();
+			$table->string('firebase_uid')->nullable();
 			$table->string('phone', 20)->unique()->nullable(); // Penting untuk notifikasi WA/SMS
 			$table->string('username')->unique()->nullable(); // Opsional, login pakai username
 

@@ -24,10 +24,27 @@ class StoreTransactionRequest extends FormRequest
 	public function rules(): array
 	{
 		return [
-			'user_id'      => ['required', 'string'],
+			'category_id' => ['required', 'string'],
+
+			// Wajib hanya jika category = games
+			'user_id' => ['required_if:category_id,games', 'string'],
+			'server_id' => ['required_if:category_id,games', 'string'],
+
 			'product_code' => ['required', 'string', 'max:50'],
-			'target'       => ['required', 'string', 'max:20'], // Max 20 agar tidak terlalu panjang
-			'amount'       => ['required', 'numeric', 'min:1'],
+
+			// Wajib jika BUKAN games
+			'target' => [
+				'exclude_if:category_id,games',
+				// 'required_unless:category_id,games',
+				'required',
+				'string',
+				'max:20'
+			],
+
+			// 'category_id'  => ['required', 'string'],
+			// 'user_id'      => ['required', 'string'],
+			// 'product_code' => ['required', 'string', 'max:50'],
+			// 'target'       => ['required', 'string', 'max:20'], // Max 20 agar tidak terlalu panjang
 
 			// Opsional: Validasi PIN Transaksi jika ada
 			// 'pin' => ['required', 'digits:6'],
@@ -43,6 +60,8 @@ class StoreTransactionRequest extends FormRequest
 	{
 		return [
 			'required' => ':attribute harus diisi!',
+			'required_if' => ':attribute harus diisi!',
+			'string' => ':attribute harus diisi!',
 			'min' => ':attribute minimal :min karakter!',
 			'max' => ':attribute maximal :max digit!',
 		];
@@ -54,10 +73,11 @@ class StoreTransactionRequest extends FormRequest
 	public function attributes(): array
 	{
 		return [
-			'user_id'      => 'Pelanggan',
-			'product_code' => 'Kode Produk',
+			'category_id'  => 'Kategori',
+			'user_id'      => 'User ID',
+			'server_id'    => 'Server ID',
+			'product_code' => 'Produk',
 			'target'       => 'Nomor Tujuan',
-			'amount'       => 'Harga / Nominal',
 		];
 	}
 

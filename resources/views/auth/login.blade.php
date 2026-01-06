@@ -261,6 +261,9 @@
 				<button type="submit" class="btn btn-primary w-100 rounded-3">
 					MASUK <i class="fas fa-arrow-right ms-2"></i>
 				</button>
+				{{-- <button id="google-login-btn" class="btn btn-danger" type="button">
+					Login with Google
+				</button> --}}
 
 			</form>
 		</div>
@@ -272,5 +275,88 @@
 @endsection
 
 @push('scripts')
+	{{-- <script type="module">
+		// Import the functions you need from the SDKs you need
+		import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+		import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+		import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+		// TODO: Add SDKs for Firebase products that you want to use
+		// https://firebase.google.com/docs/web/setup#available-libraries
 
+		// Your web app's Firebase configuration
+		// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+		const firebaseConfig = {
+			apiKey: "AIzaSyCvFQxEP9M7EyFg_KBtrCmqru1iMNbbeTA",
+			authDomain: "fresh-waters-481203-s6.firebaseapp.com",
+			projectId: "fresh-waters-481203-s6",
+			storageBucket: "fresh-waters-481203-s6.firebasestorage.app",
+			messagingSenderId: "1008236683412",
+			appId: "1:1008236683412:web:cf2ce6f415da9c21bd9481",
+			measurementId: "G-XXC9B94GZX"
+		};
+
+		// Initialize Firebase
+		const app = initializeApp(firebaseConfig);
+		const analytics = getAnalytics(app);
+
+		// Import the functions you need from the SDKs you need
+		// import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+		// import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+		// import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+		// import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+		// const auth = getAuth();
+		// signInWithPopup(auth, provider)
+		// .then((result) => {
+		// 	const user = result.user;
+		// 	console.log("User sudah login:", user);
+		// })
+
+
+		// Initialize Firebase
+		// const app = initializeApp(firebaseConfig);
+		const auth = getAuth(app);
+		const provider = new GoogleAuthProvider();
+
+		document.getElementById('google-login-btn').addEventListener('click', (e) => {
+			// return console.log(auth);
+
+			signInWithPopup(auth, provider)
+			.then((result) => {
+				// User berhasil login di sisi Client (Firebase)
+				const user = result.user;
+
+				// Ambil ID Token
+				user.getIdToken().then((idToken) => {
+					sendTokenToBackend(idToken);
+				});
+			}).catch((error) => {
+				console.error("Error:", error);
+				alert("Login Gagal");
+			});
+		});
+
+		function sendTokenToBackend(idToken) {
+			// Kirim token ke Controller Laravel via Fetch API
+			fetch("{{ route('auth.firebase.login') }}", {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRF-TOKEN': "{{ csrf_token() }}" // Wajib untuk Laravel
+				},
+				body: JSON.stringify({ id_token: idToken })
+			})
+			.then(response => response.json())
+			.then(data => {
+				if(data.status === 'success') {
+					window.location.href = data.redirect;
+				} else {
+					alert(data.message);
+				}
+			})
+			.catch((error) => {
+				console.error('Error:', error);
+			});
+		}
+	</script> --}}
 @endpush

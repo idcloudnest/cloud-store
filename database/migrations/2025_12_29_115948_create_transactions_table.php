@@ -39,14 +39,24 @@ return new class extends Migration
 			$table->decimal('total_amount', 15, 2)->comment("Total = Amount + Fee + Kode Unik");
 
 			// 4. Status
-			$table->enum('status', ['pending', 'paid', 'processing', 'success', 'failed', 'expired'])
+			// $table->enum('status', ['pending', 'paid', 'processing', 'success', 'failed', 'expired'])
+			// 	->default('pending')
+			// 	->index();
+			$table->enum('payment_status', ['unpaid', 'paid', 'expired', 'failed', 'refunded'])
+				->default('unpaid')
+				->index()
+				->comment("Status uang dari Midtrans");
+			$table->enum('delivery_status', ['pending', 'processing', 'success', 'failed'])
 				->default('pending')
-				->index();
+				->index()
+				->comment("Status pengisian ke provider (Digiflazz)");
 
 			// 5. Data Provider (Digiflazz/VIP)
 			$table->string('ref_id')->nullable()->comment("ID referensi kita ke provider (generate by sistem)");
 			$table->string('sn')->nullable()->comment("bukti / token listrik / serial number topup");
 			$table->text('provider_message')->nullable()->comment("alasan gagal (misal: nomor salah");
+			$table->string('tele_supplier')->nullable();
+			$table->string('wa_supplier')->nullable();
 
 			$table->string('snap_token')->nullable()->comment("Snap token midtrans");
 

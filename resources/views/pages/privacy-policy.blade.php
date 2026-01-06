@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Kebijakan Privasi - ID Cloud Store')
+@section('title', 'Kebijakan Privasi - Cloud Nest Store')
 
 @push('styles')
 <style>

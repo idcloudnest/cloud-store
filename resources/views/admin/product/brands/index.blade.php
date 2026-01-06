@@ -2,35 +2,6 @@
 
 @section('title', 'Data Brand & Kategori')
 
-@push('styles')
-	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-
-	<style>
-		/* --- STYLES UTILS (Konsisten) --- */
-		.badge-soft-primary { background-color: rgba(102, 126, 234, 0.1); color: #667eea; }
-		.badge-soft-success { background-color: rgba(42, 245, 152, 0.1); color: #1f9d55; }
-		.badge-soft-warning { background-color: rgba(254, 207, 239, 0.1); color: #d63384; }
-		.badge-soft-danger { background-color: rgba(255, 154, 158, 0.1); color: #d63031; }
-		.badge-soft-info { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
-		.badge-soft-dark { background-color: rgba(52, 58, 64, 0.1); color: #343a40; }
-
-		.filter-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #6c757d; margin-bottom: 5px; }
-
-		/* --- KHUSUS BRAND --- */
-		.brand-logo {
-			width: 50px; height: 50px;
-			border-radius: 12px; /* Rounded kotak untuk logo game/provider */
-			object-fit: contain;
-			background-color: #fff;
-			border: 1px solid #e9ecef;
-			padding: 2px;
-		}
-
-		.brand-name { font-weight: 700; color: #2d3436; font-size: 0.95rem; }
-		.brand-slug { font-family: 'Courier New', monospace; font-size: 0.8rem; color: #667eea; }
-	</style>
-@endpush
-
 @section('content')
 
 	<div class="d-flex justify-content-between align-items-center mb-4">
@@ -50,7 +21,7 @@
 			<div class="card border-0 shadow-sm p-3">
 				<div class="d-flex align-items-center">
 					<div class="bg-primary bg-opacity-10 p-3 rounded me-3 text-primary"><i class="fa-solid fa-layer-group fa-xl"></i></div>
-					<div><span class="text-muted small text-uppercase fw-bold">Total Brand</span><h4 class="fw-bold mb-0">42</h4></div>
+					<div><span class="text-muted small text-uppercase fw-bold">Total Brand</span><h4 class="fw-bold mb-0">{{ $brandCount }}</h4></div>
 				</div>
 			</div>
 		</div>
@@ -58,7 +29,7 @@
 			<div class="card border-0 shadow-sm p-3">
 				<div class="d-flex align-items-center">
 					<div class="bg-info bg-opacity-10 p-3 rounded me-3 text-info"><i class="fa-solid fa-gamepad fa-xl"></i></div>
-					<div><span class="text-muted small text-uppercase fw-bold">Game Mobile</span><h4 class="fw-bold mb-0">15</h4></div>
+					<div><span class="text-muted small text-uppercase fw-bold">Game</span><h4 class="fw-bold mb-0">{{ $gameCount }}</h4></div>
 				</div>
 			</div>
 		</div>
@@ -66,7 +37,7 @@
 			<div class="card border-0 shadow-sm p-3">
 				<div class="d-flex align-items-center">
 					<div class="bg-success bg-opacity-10 p-3 rounded me-3 text-success"><i class="fa-solid fa-sim-card fa-xl"></i></div>
-					<div><span class="text-muted small text-uppercase fw-bold">Operator Pulsa</span><h4 class="fw-bold mb-0">8</h4></div>
+					<div><span class="text-muted small text-uppercase fw-bold">Operator Pulsa</span><h4 class="fw-bold mb-0">{{ $operatorCount }}</h4></div>
 				</div>
 			</div>
 		</div>
@@ -118,14 +89,20 @@
 
 	<div class="card border-0 shadow-sm mb-5">
 		<div class="card-body p-0">
-			<div class="table-responsive p-3">
-				<table class="table table-hover align-middle mb-0" id="brandTable" style="width:100%">
+			<div class="table-responsive p-3" style="overflow-x: hidden;">
+				<table class="table table-hover align-middle mb-0" id="data-table" style="width:100%">
 					<thead class="bg-light text-secondary">
 						<tr>
-							<th class="ps-3 py-3">Brand Info</th> <th>Kategori</th>                     <th>Provider</th>                     <th>Total SKU</th>                    <th>Status</th>                       <th class="text-end pe-3">Aksi</th>   </tr>
+							<th>Brand Info</th>
+							<th>Kategori</th>
+							<th>Provider</th>
+							<th>Total SKU</th>
+							<th>Status</th>
+							<th class="text-end pe-3">Aksi</th>
+						</tr>
 					</thead>
 					<tbody>
-						<tr>
+						{{-- <tr>
 							<td class="ps-3">
 								<div class="d-flex align-items-center">
 									<img src="https://play-lh.googleusercontent.com/WMOXe7XqV7189X7964rA24y_74QoH7c6uYw6e6v36Q6g72_1361250280" class="brand-logo me-3">
@@ -202,7 +179,7 @@
 									</ul>
 								</div>
 							</td>
-						</tr>
+						</tr> --}}
 					</tbody>
 				</table>
 			</div>
@@ -262,17 +239,124 @@
 
 @endsection
 
+
+@push('styles')
+	{{-- <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"> --}}
+	<link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.min.css" id="main-style-link">
+
+	<style>
+		/* --- STYLES UTILS (Konsisten) --- */
+		.badge-soft-primary { background-color: rgba(102, 126, 234, 0.1); color: #667eea; }
+		.badge-soft-success { background-color: rgba(42, 245, 152, 0.1); color: #1f9d55; }
+		.badge-soft-warning { background-color: rgba(254, 207, 239, 0.1); color: #d63384; }
+		.badge-soft-danger { background-color: rgba(255, 154, 158, 0.1); color: #d63031; }
+		.badge-soft-info { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
+		.badge-soft-dark { background-color: rgba(52, 58, 64, 0.1); color: #343a40; }
+
+		.filter-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #6c757d; margin-bottom: 5px; }
+
+		/* --- KHUSUS BRAND --- */
+		.brand-logo {
+			width: 50px; height: 50px;
+			border-radius: 12px; /* Rounded kotak untuk logo game/provider */
+			object-fit: contain;
+			background-color: #fff;
+			border: 1px solid #e9ecef;
+			padding: 2px;
+		}
+
+		.brand-name { font-weight: 700; color: #2d3436; font-size: 0.95rem; }
+		.brand-slug { font-family: 'Courier New', monospace; font-size: 0.8rem; color: #667eea; }
+
+
+
+		/* FIX 2: Paksa Tabel untuk Scroll, bukan Melebarkan Halaman */
+		div.dataTables_wrapper {
+			width: 100%;
+			margin: 0 auto;
+		}
+
+		/* FIX 3: Pastikan Text Tidak Wrap agar Scroll Muncul */
+		#data-table th,
+		#data-table td {
+			white-space: nowrap;
+			vertical-align: middle;
+		}
+
+		#data-table th,
+		#data-table td {
+			white-space: nowrap;
+			vertical-align: middle;
+		}
+
+		/* Opsional: Perhalus scrollbar */
+		div.dataTables_scrollBody::-webkit-scrollbar {
+			height: 10px;
+		}
+		div.dataTables_scrollBody::-webkit-scrollbar-thumb {
+			background: #ccc;
+			border-radius: 5px;
+		}
+
+		/* Trik tambahan: Jika 'static' membuat posisi dropdown agak aneh,
+		kita paksa overflow visible HANYA secara vertikal pada body tabel */
+		.dataTables_scrollBody {
+			overflow-y: visible !important;
+			overflow-x: auto !important;
+		}
+
+		.dropdown-menu {
+			z-index: 1055 !important; /* Lebih tinggi dari Navbar/Modal Bootstrap standar */
+		}
+
+		/* Perbaikan visual tombol aksi agar tidak loncat saat diklik */
+		.action-btn:focus, .action-btn:active {
+			outline: none;
+			box-shadow: none;
+		}
+	</style>
+@endpush
+
 @push('scripts')
-	<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-	<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+	{{-- <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+	<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script> --}}
+
+	<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js" rel="stylesheet"></script>
+	<script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.min.js" rel="stylesheet"></script>
 
 	<script>
 		$(document).ready(function() {
-			var table = $('#brandTable').DataTable({
-				"language": { "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json" },
-				"dom": 'rtp',
-				"pageLength": 10,
-				"columnDefs": [ { "orderable": false, "targets": 5 } ]
+			// var table = $('#brandTable').DataTable({
+			// 	"language": { "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json" },
+			// 	"dom": 'rtp',
+			// 	"pageLength": 10,
+			// 	"columnDefs": [ { "orderable": false, "targets": 5 } ]
+			// });
+
+			var table = $('#data-table').DataTable({
+				processing: true, // Tampilkan pesan loading
+				serverSide: true, // Aktifkan pengolahan di server (AJAX)
+				searchDelay: 500,
+				scrollX: true,
+				columnDefs: [{
+						targets: [5],
+						orderable: false
+					},
+					{
+						targets: [5],
+						searchable: false
+					},
+				],
+				ajax: "{{ route('admin.products.brands.index') }}", // URL ke Controller tadi
+				columns: [
+					// "data" harus sesuai dengan nama kolom di database atau nama custom column di controller
+					{data: 'name', name: 'name',},
+					{data: 'category_list', name: 'category_list',},
+					{data: 'provider_name', name: 'provider_name',},
+					{data: 'products_count', name: 'products_count',},
+					{data: 'status', name: 'status',},
+					{data: 'action', name: 'action',},
+				]
 			});
 
 			// Connect Filters

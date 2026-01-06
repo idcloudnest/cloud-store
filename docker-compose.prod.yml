@@ -48,6 +48,8 @@ services:
       - MIDTRANS_IS_PRODUCTION=${MIDTRANS_IS_PRODUCTION}
       - MIDTRANS_IS_SANITIZED=true
       - MIDTRANS_IS_3DS=true
+      - UID=1002
+      - GID=1003
     restart: always
     networks:
       - core

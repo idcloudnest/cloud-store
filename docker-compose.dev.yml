@@ -8,6 +8,8 @@ services:
       dockerfile: Dockerfile.dev
     image: store-dev:latest
     container_name: cloud-store-dev
+    environment:
+      - TYPE=WEB
     ports:
       - "8001:80"
     volumes:
@@ -15,6 +17,22 @@ services:
     env_file:
       - .env
     restart: always
+    command: php artisan serve --host=0.0.0.0 --port=80
+    networks:
+      - core
+
+  cloud-store-queue:
+    image: store-dev:latest
+    container_name: cloud-store-queue
+    # command: php artisan queue:work --tries=3 --timeout=90
+    environment:
+      - TYPE=QUEUE
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: always
+    command: php artisan queue:work --queue=transactions,default --tries=3 --timeout=90
     networks:
       - core
 

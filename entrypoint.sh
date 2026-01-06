@@ -14,14 +14,18 @@ if [ -z "$APP_KEY" ]; then
   php artisan key:generate
 fi
 
-# Migration & seed
-php artisan migrate:fresh --force
-php artisan db:seed --force
+if [ "$TYPE" = "QUEUE" ]; then
+    echo "📦 Container TYPE is '${TYPE}'. Skipping migrations & seeds."
+else
+    echo "⏩ Container TYPE is '${TYPE}'. Running migrations & seeds..."
+    # Migration & seed
+    php artisan migrate:fresh --force
+    php artisan db:seed --force
 
-# Passport (aman dijalankan berulang)
-# php artisan passport:install --force
-
-# echo "✅ Laravel ready!"
+    echo "✅ Database setup complete!"
+fi
 
 # Jalankan command utama (artisan serve)
+# Penting: exec "$@" meneruskan command queue:work atau artisan serve
+echo "▶️  Executing command: $@"
 exec "$@"

@@ -351,7 +351,7 @@
 @section('title', 'Data Transaksi')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.bootstrap5.min.css" id="main-style-link">
 
 <style>
 	/* Soft Badges */
@@ -374,6 +374,51 @@
 		background-color: var(--primary-color);
 		border-color: var(--primary-color);
 	}
+
+	/* FIX 2: Paksa Tabel untuk Scroll, bukan Melebarkan Halaman */
+	div.dataTables_wrapper {
+		width: 100%;
+		margin: 0 auto;
+	}
+
+	/* FIX 3: Pastikan Text Tidak Wrap agar Scroll Muncul */
+	#data-table th,
+	#data-table td {
+		white-space: nowrap;
+		vertical-align: middle;
+	}
+
+	#data-table th,
+	#data-table td {
+		white-space: nowrap;
+		vertical-align: middle;
+	}
+
+	/* Opsional: Perhalus scrollbar */
+	div.dataTables_scrollBody::-webkit-scrollbar {
+		height: 10px;
+	}
+	div.dataTables_scrollBody::-webkit-scrollbar-thumb {
+		background: #ccc;
+		border-radius: 5px;
+	}
+
+	/* Trik tambahan: Jika 'static' membuat posisi dropdown agak aneh,
+	   kita paksa overflow visible HANYA secara vertikal pada body tabel */
+	.dataTables_scrollBody {
+		overflow-y: visible !important;
+		overflow-x: auto !important;
+	}
+
+	.dropdown-menu {
+		z-index: 1055 !important; /* Lebih tinggi dari Navbar/Modal Bootstrap standar */
+	}
+
+	/* Perbaikan visual tombol aksi agar tidak loncat saat diklik */
+	.action-btn:focus, .action-btn:active {
+		outline: none;
+		box-shadow: none;
+	}
 </style>
 @endpush
 
@@ -393,25 +438,25 @@
 	<div class="row g-3 mb-4">
 		<div class="col-md-3">
 			<div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center justify-content-between">
-				<div><span class="text-muted small text-uppercase fw-bold">Omzet Hari Ini</span><h5 class="fw-bold mb-0 text-primary">Rp 1.250.000</h5></div>
+				<div><span class="text-muted small text-uppercase fw-bold">Omzet Hari Ini</span><h5 class="fw-bold mb-0 text-primary">{{ formatRupiah($omzet) }}</h5></div>
 				<div class="bg-primary bg-opacity-10 p-2 rounded text-primary"><i class="fa-solid fa-chart-line"></i></div>
 			</div>
 		</div>
 		<div class="col-md-3">
 			<div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center justify-content-between">
-				<div><span class="text-muted small text-uppercase fw-bold">Total Trx</span><h5 class="fw-bold mb-0 text-success">142</h5></div>
+				<div><span class="text-muted small text-uppercase fw-bold">Total Trx</span><h5 class="fw-bold mb-0 text-success">{{ $trxCount }}</h5></div>
 				<div class="bg-success bg-opacity-10 p-2 rounded text-success"><i class="fa-solid fa-check-double"></i></div>
 			</div>
 		</div>
 		<div class="col-md-3">
 			<div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center justify-content-between">
-				<div><span class="text-muted small text-uppercase fw-bold">Pending</span><h5 class="fw-bold mb-0 text-warning">8</h5></div>
+				<div><span class="text-muted small text-uppercase fw-bold">Pending</span><h5 class="fw-bold mb-0 text-warning">{{ $trxPendingCount }}</h5></div>
 				<div class="bg-warning bg-opacity-10 p-2 rounded text-warning"><i class="fa-solid fa-clock"></i></div>
 			</div>
 		</div>
 		<div class="col-md-3">
 			<div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center justify-content-between">
-				<div><span class="text-muted small text-uppercase fw-bold">Gagal/Refund</span><h5 class="fw-bold mb-0 text-danger">2</h5></div>
+				<div><span class="text-muted small text-uppercase fw-bold">Gagal/Refund</span><h5 class="fw-bold mb-0 text-danger">{{ $trxFailedCount }}</h5></div>
 				<div class="bg-danger bg-opacity-10 p-2 rounded text-danger"><i class="fa-solid fa-circle-xmark"></i></div>
 			</div>
 		</div>
@@ -420,32 +465,39 @@
 	<div class="card border-0 shadow-sm mb-4">
 		<div class="card-body">
 			<div class="row g-3 align-items-end">
-				<div class="col-md-4">
-					<label class="filter-label">Cari Data</label>
-					<div class="input-group">
-						<span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-						<input type="text" id="customSearch" class="form-control border-start-0 ps-0" placeholder="TRX ID / No. HP / Username...">
-					</div>
+				<div class="col-md-3">
+					<label class="filter-label">Payment Status</label>
+					<select id="payment-status-filter" class="form-select" style="text-align-last: center;">
+						<option value="">--SEMUA--</option>
+						<option value="unpaid">Unpaid</option>
+						<option value="paid">Paid</option>
+						<option value="expired">Expired</option>
+						<option value="refunded">Refunded</option>
+						<option value="failed">Failed</option>
+					</select>
 				</div>
 				<div class="col-md-3">
-					<label class="filter-label">Status</label>
-					<select id="statusFilter" class="form-select">
-						<option value="">Semua Status</option>
-						<option value="Sukses">Sukses</option>
-						<option value="Pending">Pending</option>
-						<option value="Gagal">Gagal</option>
+					<label class="filter-label">Delivery Status</label>
+					<select id="delivery-status-filter" class="form-select" style="text-align-last: center;">
+						<option value="">--SEMUA--</option>
+						<option value="success">Success</option>
+						<option value="pending">Pending</option>
+						<option value="processing">Processing</option>
+						<option value="failed">Failed</option>
 					</select>
 				</div>
 				<div class="col-md-3">
 					<label class="filter-label">Kategori</label>
-					<select id="categoryFilter" class="form-select">
-						<option value="">Semua Kategori</option>
-						<option value="Games">Games</option>
-						<option value="Pulsa">Pulsa</option>
-						<option value="PLN">PLN</option>
+					<select id="category-filter" class="form-select" style="text-align-last: center;">
+						<option value="">--SEMUA--</option>
+						@if (count($categories))
+							@foreach ($categories as $category)
+								<option value="{{ $category->category }}">{{ strtoupper($category->category) }}</option>
+							@endforeach
+						@endif
 					</select>
 				</div>
-				<div class="col-md-2">
+				<div class="col-md-3">
 					<button class="btn btn-light w-100 fw-bold border" onclick="window.location.reload()"><i class="fa-solid fa-rotate-right me-1"></i> Reset</button>
 				</div>
 			</div>
@@ -454,183 +506,353 @@
 
 	<div class="card border-0 shadow-sm mb-5">
 		<div class="card-body p-0">
-			<div class="table-responsive p-3">
-				<table class="table table-hover align-middle mb-0" id="transactionsTable" style="width:100%">
+			<div class="table-responsive p-3" style="overflow-x: hidden;">
+				<table class="table table-hover align-middle mb-0" id="data-table" style="width:100%">
 					<thead class="bg-light text-secondary">
 						<tr>
-							<th class="ps-3 py-3">ID Transaksi</th>
+							{{-- <th class="ps-3 py-3">ID Transaksi</th> --}}
+							<th>ID Transaksi</th>
 							<th>User / Tujuan</th>
-							<th>Produk</th> <th>Harga</th>
+							<th>Produk</th>
+							<th>Kategori</th>
+							<th>Harga</th>
 							<th>Tanggal</th>
-							<th>Status</th>
+							<th>Status Pembayaran</th>
+							<th>Status Delivery</th>
 							<th class="text-end pe-3">Aksi</th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr>
-							<td class="ps-3">
-								<span class="trx-id text-primary">#TRX-88201</span>
-								<div class="small text-muted">Via: BCA</div>
-							</td>
-							<td>
-								<div class="d-flex align-items-center">
-									<div class="bg-light rounded-circle p-2 me-2 text-center" style="width: 35px; height: 35px;">
-										<i class="fa-solid fa-user text-secondary"></i>
-									</div>
-									<div>
-										<div class="fw-bold text-dark">Budi Santoso</div>
-										<small class="text-muted d-block">0812-3456-7890</small>
-									</div>
-								</div>
-							</td>
-							<td>
-								<div class="d-flex align-items-center">
-									<img src="https://cdn-icons-png.flaticon.com/512/3408/3408506.png" class="table-avatar me-2" alt="Icon">
-									<div>
-										<div class="fw-bold">MLBB 86 Diamonds</div>
-										<small class="text-muted">Games</small>
-									</div>
-								</div>
-							</td>
-							<td class="fw-bold text-dark">Rp 23.500</td>
-							<td class="small text-muted" data-order="2024-12-28 14:30"> 28 Des 2024<br>14:30 WIB
-							</td>
-							<td><span class="badge badge-soft-success px-3 py-2 rounded-pill">Sukses</span></td>
-							<td class="text-end pe-3">
-								<div class="dropdown">
-									<button class="btn btn-light btn-sm action-btn" data-bs-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-									<ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-										<li><a class="dropdown-item" href="#"><i class="fa-solid fa-eye me-2 text-primary"></i> Detail</a></li>
-										<li><a class="dropdown-item" href="#"><i class="fa-solid fa-print me-2 text-secondary"></i> Cetak</a></li>
-									</ul>
-								</div>
-							</td>
-						</tr>
-
-						<tr>
-							<td class="ps-3">
-								<span class="trx-id text-primary">#TRX-88202</span>
-								<div class="small text-muted">Via: QRIS</div>
-							</td>
-							<td>
-								<div class="d-flex align-items-center">
-									<div class="bg-light rounded-circle p-2 me-2 text-center" style="width: 35px; height: 35px;">
-										<i class="fa-solid fa-user text-secondary"></i>
-									</div>
-									<div>
-										<div class="fw-bold text-dark">Guest User</div>
-										<small class="text-muted d-block">0857-9999-1111</small>
-									</div>
-								</div>
-							</td>
-							<td>
-								<div class="d-flex align-items-center">
-									<img src="https://cdn-icons-png.flaticon.com/512/3616/3616430.png" class="table-avatar me-2" alt="Icon">
-									<div>
-										<div class="fw-bold">Telkomsel 50k</div>
-										<small class="text-muted">Pulsa</small>
-									</div>
-								</div>
-							</td>
-							<td class="fw-bold text-dark">Rp 50.500</td>
-							<td class="small text-muted" data-order="2024-12-28 14:35">
-								28 Des 2024<br>14:35 WIB
-							</td>
-							<td><span class="badge badge-soft-warning px-3 py-2 rounded-pill">Pending</span></td>
-							<td class="text-end pe-3">
-								<div class="dropdown">
-									<button class="btn btn-light btn-sm action-btn" data-bs-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-									<ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-										<li><a class="dropdown-item" href="#"><i class="fa-solid fa-eye me-2 text-primary"></i> Detail</a></li>
-									</ul>
-								</div>
-							</td>
-						</tr>
-
-						<tr>
-							<td class="ps-3">
-								<span class="trx-id text-primary">#TRX-88203</span>
-								<div class="small text-muted">Via: Saldo</div>
-							</td>
-							<td>
-								<div class="d-flex align-items-center">
-									<div class="bg-light rounded-circle p-2 me-2 text-center" style="width: 35px; height: 35px;">
-										<i class="fa-solid fa-user text-secondary"></i>
-									</div>
-									<div>
-										<div class="fw-bold text-dark">Siti Aminah</div>
-										<small class="text-muted d-block">1212334455</small>
-									</div>
-								</div>
-							</td>
-							<td>
-								<div class="d-flex align-items-center">
-									<img src="https://cdn-icons-png.flaticon.com/512/2830/2830303.png" class="table-avatar me-2" alt="Icon">
-									<div>
-										<div class="fw-bold">Token PLN 20k</div>
-										<small class="text-muted">PLN</small>
-									</div>
-								</div>
-							</td>
-							<td class="fw-bold text-dark">Rp 20.500</td>
-							<td class="small text-muted" data-order="2024-12-28 14:40">
-								28 Des 2024<br>14:40 WIB
-							</td>
-							<td><span class="badge badge-soft-danger px-3 py-2 rounded-pill">Gagal</span></td>
-							<td class="text-end pe-3">
-								<div class="dropdown">
-									<button class="btn btn-light btn-sm action-btn" data-bs-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>
-									<ul class="dropdown-menu dropdown-menu-end border-0 shadow">
-										<li><a class="dropdown-item" href="#"><i class="fa-solid fa-eye me-2 text-primary"></i> Detail</a></li>
-									</ul>
-								</div>
-							</td>
-						</tr>
 					</tbody>
 				</table>
 			</div>
 		</div>
 	</div>
 
+	{{-- MODAL DETAIL TRANSAKSI --}}
+	<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content border-0 shadow">
+				<div class="modal-header bg-light">
+					<h5 class="modal-title fw-bold">Detail Transaksi</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body p-4">
+					{{-- Loading Spinner (Default visible) --}}
+					<div id="modal-loader" class="text-center py-5">
+						<div class="spinner-border text-primary" role="status"></div>
+						<p class="small text-muted mt-2">Memuat data...</p>
+					</div>
+
+					{{-- Content (Default hidden) --}}
+					<div id="modal-content" class="d-none">
+						<div class="text-center mb-4">
+							<div id="modal-status-badge" class="badge px-3 py-2 mb-2 rounded-pill"></div>
+							<h3 class="fw-bold text-primary mb-0" id="modal-amount"></h3>
+							<small class="text-muted trx-id" id="modal-invoice"></small>
+						</div>
+
+						<div class="row g-3">
+							<div class="col-6">
+								<label class="small text-muted fw-bold text-uppercase">Produk</label>
+								<div class="fw-bold text-dark" id="modal-product"></div>
+								<small class="text-muted" id="modal-category"></small>
+							</div>
+							<div class="col-6 text-end">
+								<label class="small text-muted fw-bold text-uppercase">Tanggal</label>
+								<div class="fw-bold text-dark" id="modal-date"></div>
+							</div>
+
+							<div class="col-12 border-bottom pb-3"></div>
+
+							<div class="col-6">
+								<label class="small text-muted fw-bold text-uppercase">Tujuan / ID</label>
+								<div class="fw-bold text-dark" id="modal-customer-no"></div>
+								<small class="text-muted" id="modal-user"></small>
+							</div>
+							<div class="col-6 text-end">
+								<label class="small text-muted fw-bold text-uppercase">Payment Status</label>
+								<div id="modal-payment-status"></div>
+							</div>
+
+							{{-- Section SN / Pesan Provider --}}
+							<div class="col-12 mt-4 bg-light p-3 rounded">
+								<label class="small text-muted fw-bold d-block mb-1">SN / Token / Pesan Provider:</label>
+								<code class="text-dark d-block text-break" id="modal-sn"></code>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer border-0 bg-light">
+					<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+				</div>
+			</div>
+		</div>
+	</div>
 @endsection
 
 @push('scripts')
-	<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-	<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+	<script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js" rel="stylesheet"></script>
+	<script src="https://cdn.datatables.net/2.2.2/js/dataTables.bootstrap5.min.js" rel="stylesheet"></script>
 
 	<script>
-		$(document).ready(function() {
-			// --- INISIALISASI DATATABLES ---
-			var table = $('#transactionsTable').DataTable({
-				"language": {
-					"url": "https://cdn.datatables.net/plug-ins/1.13.4/i18n/id.json" // Bahasa Indonesia
+		// Badge Helper
+		const getStatusBadge = (status) => {
+			switch(status.toLowerCase()) {
+				case 'success': return '<span class="badge badge-soft-success">SUKSES</span>';
+				case 'pending': return '<span class="badge badge-soft-warning">PENDING</span>';
+				case 'processing': return '<span class="badge badge-soft-primary">PROSES</span>';
+				case 'failed': return '<span class="badge badge-soft-danger">GAGAL</span>';
+				case 'paid': return '<span class="badge badge-soft-success">LUNAS</span>';
+				case 'unpaid': return '<span class="badge badge-soft-secondary">BELUM BAYAR</span>';
+				case 'refunded': return '<span class="badge bg-info">REFUND</span>';
+				default: return `<span class="badge bg-secondary">${status}</span>`;
+			}
+		}
+
+		$(document).on('click', '.btn-detail', function() {
+			let trxId = $(this).data('id');
+			let url = "{{ route('admin.transactions.show', ':id') }}";
+			url = url.replace(':id', trxId);
+
+			// 1. Reset & Show Modal Loader
+			$('#modal-content').addClass('d-none');
+			$('#modal-loader').removeClass('d-none');
+			$('#detailModal').modal('show');
+
+			// 2. Fetch Data via AJAX
+			$.ajax({
+				url: url,
+				type: 'GET',
+				success: function(res) {
+					const data = res.data
+					// 3. Populate Data
+					$('#modal-invoice').text('#' + data.invoice);
+					$('#modal-amount').text(formatRupiah(data.total_amount));
+					$('#modal-date').text(formatDate(data.created_at));
+
+					// Product & Category (Safe check if product deleted)
+					let prodName = data.product_name_snapshot || (data.product ? data.product.product_name : '-');
+					let catName = data.product ? data.product.category.toUpperCase() : '-';
+					$('#modal-product').text(prodName);
+					$('#modal-category').text(catName);
+
+					// Customer info
+					$('#modal-customer-no').text(data.customer_no);
+					let userName = data.user ? data.user.name : 'Guest / Terhapus';
+					$('#modal-user').text(userName);
+
+					// Status Badges
+					$('#modal-status-badge').html(getStatusBadge(data.delivery_status.toUpperCase()));
+					// Kita manipulasi class parent badge utama untuk warna background light-nya
+					$('#modal-status-badge').attr('class', 'badge px-3 py-2 mb-2 rounded-pill'); // reset
+					if(data.delivery_status == 'success') $('#modal-status-badge').addClass('badge-soft-success');
+					else if(data.delivery_status == 'pending') $('#modal-status-badge').addClass('badge-soft-warning');
+					else if(data.delivery_status == 'failed') $('#modal-status-badge').addClass('badge-soft-danger');
+					else $('#modal-status-badge').addClass('badge-soft-primary');
+
+					$('#modal-status-badge').text(data.delivery_status.toUpperCase());
+
+					$('#modal-payment-status').html(getStatusBadge(data.payment_status.toUpperCase()));
+
+					// SN Message
+					let sn = data.sn ? data.sn : '-';
+					let msg = data.provider_message ? data.provider_message : '';
+					$('#modal-sn').html(sn + '<br><span class="text-muted small">' + msg + '</span>');
+
+					// 4. Show Content, Hide Loader
+					$('#modal-loader').addClass('d-none');
+					$('#modal-content').removeClass('d-none');
 				},
-				"dom": 'rtp', // HIDE Default Search & Length (Kita pakai custom filter di atas)
-				"pageLength": 10,
-				"columnDefs": [
-					{ "orderable": false, "targets": 6 } // Matikan sorting di kolom Aksi (index 6)
+				error: function(err) {
+					// alert('Gagal mengambil data transaksi');
+					// $('#detailModal').modal('hide');
+					// 1. Sembunyikan Loader
+					$('#modal-loader').addClass('d-none');
+
+					// 2. Tampilkan Pesan Error di area konten
+					$('#modal-content').removeClass('d-none').html(`
+						<div class="text-center py-4">
+							<i class="fa-solid fa-circle-exclamation text-danger fa-3x mb-3"></i>
+							<h5 class="text-danger fw-bold">Gagal Memuat Data</h5>
+							<p class="text-muted">Terjadi kesalahan saat menghubungi server.</p>
+						</div>
+					`);
+					// // Ambil elemen modal
+					// var myModalEl = document.getElementById('detailModal');
+					// // Ambil instance yang sedang aktif
+					// var modal = bootstrap.Modal.getInstance(myModalEl);
+
+					// // Cek jika instance ada, lalu hide
+					// if (modal) {
+					// 	modal.hide();
+					// }
+				}
+			});
+		});
+
+		$('body').on('click', '.btn-resend', function() {
+			let trxId = $(this).data('id');
+
+			Swal.fire({
+				title: 'Kirim Ulang Job?',
+				text: "Transaksi ini akan dimasukkan kembali ke antrian worker!",
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#3085d6',
+				cancelButtonColor: '#d33',
+				confirmButtonText: 'Ya, Kirim!',
+				cancelButtonText: 'Batal'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					// Tampilkan Loading
+					Swal.fire({
+						title: 'Sedang Memproses...',
+						text: 'Mohon tunggu sebentar',
+						allowOutsideClick: false,
+						didOpen: () => {
+							Swal.showLoading();
+						}
+					});
+
+					// Eksekusi AJAX
+					$.ajax({
+						url: "{{ route('admin.transactions.resend') }}",
+						type: 'POST',
+						data: { id: trxId },
+						success: function(response) {
+							// Tutup Loading & Tampilkan Sukses
+							Swal.fire({
+								title: 'Berhasil!',
+								text: response.message,
+								icon: 'success',
+								timer: 2000,
+								showConfirmButton: false
+							});
+
+							// Reload DataTable otomatis
+							$('#data-table').DataTable().ajax.reload(null, false);
+						},
+						error: function(xhr) {
+							// Tutup Loading & Tampilkan Error
+							let msg = xhr.responseJSON ? xhr.responseJSON?.meta?.message : 'Terjadi kesalahan server';
+							Swal.fire(
+								'Gagal!',
+								msg,
+								'error'
+							);
+						}
+					});
+				}
+			});
+		});
+
+		$(document).ready(function() {
+			var table = $('#data-table').DataTable({
+				processing: true, // Tampilkan pesan loading
+				serverSide: true, // Aktifkan pengolahan di server (AJAX)
+				searchDelay: 500,
+				scrollX: true,
+				columnDefs: [{
+						targets: [8],
+						orderable: false
+					},
+					{
+						targets: [8],
+						searchable: false
+					},
+					// {
+					// 	targets: ['_all'],
+					// 	className: 'text-center'
+					// },
+					// {
+					// 	targets: [0],
+					// 	width: '5%'
+					// },
 				],
-				"order": [[ 0, "asc" ]] // Default sort berdasarkan Tanggal (index 4)
+				ajax: "{{ route('admin.transactions.index') }}", // URL ke Controller tadi
+				columns: [
+					// "data" harus sesuai dengan nama kolom di database atau nama custom column di controller
+					// {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+					{data: 'invoice', name: 'invoice'},
+					{data: 'customer_no', name: 'customer_no'},
+					{data: 'product_name_snapshot', name: 'product_name_snapshot'},
+					{
+						data: 'product.category',
+						name: 'product.category',
+						render: function(data, type, row, meta) {
+							return data.toUpperCase()
+						},
+					},
+					{data: 'total_rupiah', name: 'total_amount'},
+					{
+						data: 'created_at',
+						name: 'created_at',
+						className: 'text-center',
+					},
+					{
+						data: 'payment_status',
+						name: 'payment_status',
+						className: 'text-center',
+					},
+					{
+						data: 'delivery_status',
+						name: 'delivery_status',
+						className: 'text-center',
+					},
+					{
+						data: 'action',
+						name: 'action',
+						className: 'fw-bold text-end pe-3'
+					},
+				]
 			});
 
 			// --- LOGIKA CUSTOM FILTER ---
-
 			// 1. Search Bar (Global)
 			$('#customSearch').on('keyup', function() {
 				table.search(this.value).draw();
 			});
 
-			// 2. Filter Status (Kolom index 5)
-			$('#statusFilter').on('change', function() {
+			$('#category-filter').on('change', function() {
 				var status = $(this).val();
 				// Regex search untuk pencocokan tepat
-				table.column(5).search(status ? '^' + status + '$' : '', true, false).draw();
+				table.column(3).search(status ? '^' + status + '$' : '', true, false).draw();
+			});
+			// 2. Filter Status (Kolom index 5)
+			$('#payment-status-filter').on('change', function() {
+				var status = $(this).val();
+				// Regex search untuk pencocokan tepat
+				table.column(6).search(status ? '^' + status + '$' : '', true, false).draw();
+			});
+			$('#delivery-status-filter').on('change', function() {
+				var status = $(this).val();
+				console.log(status);
+
+				// Regex search untuk pencocokan tepat
+				table.column(7).search(status ? '^' + status + '$' : '', true, false).draw();
 			});
 
 			// 3. Filter Kategori (Kolom index 2 - Mengandung teks Games/Pulsa/PLN)
 			$('#categoryFilter').on('change', function() {
-				table.column(2).search(this.value).draw();
+				table.column(3).search(this.value).draw();
 			});
+
+
+
+
+			// // --- INISIALISASI DATATABLES ---
+			// var table = $('#transactionsTable').DataTable({
+			// 	"language": {
+			// 		"url": "https://cdn.datatables.net/plug-ins/1.13.4/i18n/id.json" // Bahasa Indonesia
+			// 	},
+			// 	"dom": 'rtp', // HIDE Default Search & Length (Kita pakai custom filter di atas)
+			// 	"pageLength": 10,
+			// 	"columnDefs": [
+			// 		{ "orderable": false, "targets": 6 } // Matikan sorting di kolom Aksi (index 6)
+			// 	],
+			// 	"order": [[ 0, "asc" ]] // Default sort berdasarkan Tanggal (index 4)
+			// });
 		});
 	</script>
 @endpush

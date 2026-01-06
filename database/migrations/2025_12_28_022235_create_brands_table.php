@@ -15,17 +15,19 @@ return new class extends Migration
             $table->id();
             $table->string('name');
 
-            $table->string('slug');
+            $table->string('slug')->unique();
 
-            $table->string('category');
+            // $table->string('category');
 
             $table->string('image')->nullable();
+            $table->string('icon')->nullable();
+            $table->string('color')->nullable();
 
             // Status Brand (1 = Aktif, 0 = Nonaktif)
             $table->boolean('status')->default(true);
             $table->timestamps();
 
-			$table->unique(['slug', 'category']);
+			// $table->unique(['slug', 'category']);
         });
     }
 

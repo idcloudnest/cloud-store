@@ -7,7 +7,7 @@
 				<i class="fa-solid fa-cloud-bolt"></i>
 			</div>
 			<div class="text-start" style="line-height: 1;">
-				<div style="font-size: 1rem; font-weight: 800; letter-spacing: -0.5px; color: #333;">ID<span class="text-primary">Cloud</span></div>
+				<div style="font-size: 1rem; font-weight: 800; letter-spacing: -0.5px; color: #333;">Cloud<span class="text-primary">Nest</span></div>
 			</div>
 		</div>
 
@@ -15,7 +15,12 @@
 			<a class="nav-link btn-anim rounded-circle bg-light me-2 d-none d-sm-flex align-items-center justify-content-center" style="width: 40px; height:40px;" href="#"><i class="far fa-bell"></i></a>
 			<div class="dropdown">
 				<a class="nav-link dropdown-toggle fw-bold d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-					<img src="https://ui-avatars.com/api/?name=Admin+Ganteng" class="rounded-circle" width="35" height="35">
+					<img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=6366f1&color=fff" class="rounded-circle border border-2 border-primary" style="padding: 2px;" width="35" height="35">
+					{{-- <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-light rounded-circle">
+						<span class="visually-hidden">Online</span>
+					</span> --}}
+                {{-- <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=6366f1&color=fff" class="rounded-circle border border-2 border-primary p-1" width="80" height="80"> --}}
+
 					<span class="d-none d-md-inline ms-2">{{ Auth()->user()->name ?? 'Super Admin' }}</span>
 				</a>
 				<ul class="dropdown-menu dropdown-menu-end shadow border-0" style="position: absolute;">

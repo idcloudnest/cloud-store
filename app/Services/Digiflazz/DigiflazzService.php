@@ -66,6 +66,17 @@ class DigiflazzService
 		]);
 	}
 
+	public function checkPlnId(
+		string $customerNo
+	): array
+	{
+		return $this->post('/inquiry-pln', [
+			'username' => $this->username,
+			'customer_no' => $customerNo,
+			'sign' => $this->signature($customerNo),
+		]);
+	}
+
 	public function transaction(
 		string $refId, # Unique Id (auto generate)
 		string $buyerSkuCode,

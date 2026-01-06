@@ -7,11 +7,15 @@ use Carbon\Carbon;
 use App\Models\Transaction;
 use Midtrans\Config;
 use Midtrans\Snap;
+use App\Services\Webhook\DigiflazzCallbackService;
 
 class TransactionController extends Controller
 {
-	public function __construct()
+	protected $digiflazzService;
+
+	public function __construct(DigiflazzCallbackService $digiflazzService)
 	{
+		$this->digiflazzService = $digiflazzService;
 		Config::$serverKey = config('midtrans.server_key');
 		Config::$isProduction = config('midtrans.is_production');
 		Config::$isSanitized = config('midtrans.is_sanitized');
@@ -20,65 +24,49 @@ class TransactionController extends Controller
 
 	public function checkout(Request $request)
 	{
-		// 1. Validasi Data
-		// $request->validate([
-		// 	'user_id' => 'required',
-		// 	'zone_id' => 'required',
-		// 	'nominal' => 'required', // Kirim harga murni (integer) dari frontend
-		// 	'item_name' => 'required',
-		// ]);
-
-		// 2. Buat Order ID Unik
-		// $orderId = 'TRX-' . time() . '-' . rand(100, 999);
-
 		// Harga (Pastikan dikirim sebagai angka tanpa 'Rp' atau titik)
 		$amount = $request->nominal;
-		$orderId = "#1";
+		$amount = 29000;
+		$adminFee = 1000;
+		// $orderId = "#1";
 
-		// 3. Simpan ke Database (Status Pending)
-		$transaction = Transaction::create([
-			// 'order_id' => $orderId,
-			// 'user_id_game' => $request->user_id,
-			// 'zone_id_game' => $request->zone_id,
-			// 'item_name' => $request->item_name,
-			// 'amount' => $amount,
-			// 'status' => 'pending',
+		$productPrice = 29000; // Harga Barang
+		$adminFee     = 1000;  // Biaya Admin
+		$totalAmount  = $productPrice + $adminFee; // 30000 (Total yang harus dibayar)
 
-			// 'phone_number' => '6281234567890',
-			// 'customer_no' => '123456',
-			// 'zone_id' => '1234',
-			// 'product_id' => 1,
-			// 'product_name_snapshot' => 'Weekly Diamond Pass',
-			// sku_snapshot
-			// 'amount' => 28500,
-			// 'status' => 'pending',
+		$orderId = "TIDCS-" . time(); // Pastikan Order ID Unik
 
-
+		$data = [
 			'invoice' => $orderId,
+			'amount' => $productPrice,      // 29000
+			'admin_fee' => $adminFee,       // 1000
+			'total_amount' => $totalAmount, // 30000 (PENTING)
+
 			// 'user_id' => ##,
 			'phone_number' => '6281234567890',
 			'customer_no' => '123456',
 			'zone_id' => '1234',
-			'product_id' => 1,
+			// 'product_id' => 1,
 			'product_name_snapshot' => 'Weekly Diamond Pass',
 			'sku_snapshot' => 'WDP',
-			'payment_method' => ''
+			'payment_method' => '',
 			'buy_price' => 28500,
-			'amount' => 29000,
-			'admin_fee' => 1000
 			// 'unique_code' => ##,
-			'total_amount' => 30000
 			// 'status' => ##,
-			'ref_id' => '#1',
+			'ref_id' => $orderId,
 			// 'sn' => ##,
 			// 'provider_message' => ##,
-		]);
+		];
+
+		// return $data;
+		// 3. Simpan ke Database (Status Pending)
+		$transaction = Transaction::create($data);
 
 		// 4. Buat Parameter Transaksi untuk Midtrans
 		$params = [
 			'transaction_details' => [
 				'order_id' => $orderId,
-				'gross_amount' => 29000,
+				'gross_amount' => $totalAmount,
 			],
 			'customer_details' => [
 				'first_name' => 'Gamer', // Bisa ambil dari input user
@@ -87,9 +75,16 @@ class TransactionController extends Controller
 			'item_details' => [
 				[
 					'id' => 'ITEM1',
-					'price' => 29000,
+					'price' => $productPrice,
 					'quantity' => 1,
 					'name' => 'Weekly Diamond Pass',
+				],
+				// ITEM 2: BIAYA ADMIN (Agar user tau kenapa jadi 30rb)
+				[
+					'id' => 'FEE-01',
+					'price' => $adminFee,     // 1000
+					'quantity' => 1,
+					'name' => 'Biaya Layanan',
 				]
 			]
 		];

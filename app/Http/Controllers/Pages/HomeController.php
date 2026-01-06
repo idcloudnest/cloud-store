@@ -5,11 +5,16 @@ namespace App\Http\Controllers\Pages;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use App\Models\Brand;
+use App\Models\Product;
+
 class HomeController extends Controller
 {
 	public function home()
 	{
-		return view('pages.home');
+		$categories = Product::categories()->get();
+		$brands = Brand::getCategories()->get();
+		return view('pages.home', compact('brands', 'categories'));
 	}
 
 	public function terms()

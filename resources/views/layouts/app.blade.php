@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta name="csrf-token" content="{{ csrf_token() }}">
-	<title>@yield('title', 'ID Cloud Store')</title>
+	<title>@yield('title', 'Cloud Nest Store')</title>
 
 	{{-- =========================================
          FAVICON / ICON TITLE
@@ -15,7 +15,7 @@
 
 	{{-- <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 512'%3E%3C!-- Base Icon Cloud Bolt --%3E%3Cpath fill='%234f46e5' d='M256 32c-88.4 0-160 71.6-160 160 0 2.7 .1 5.3 .2 8C40.2 219.8 0 273.2 0 336c0 79.5 64.5 144 144 144h368c70.7 0 128-57.3 128-128 0-61.9-44-113.6-102.4-125.4 4.1-10.7 6.4-22.4 6.4-34.6 0-53-43-96-96-96-19.7 0-38.1 6-53.3 16.2C367 64.2 315.3 32 256 32zm0 128l96 96h-48v80H192v-80h-48l96-96z'/%3E%3C!-- Text ICS --%3E%3Ctext x='280' y='400' font-size='350' fill='white' font-family='Arial Black, Arial, sans-serif' font-weight='900' text-anchor='middle'%3EICS%3C/text%3E%3C/svg%3E"> --}}
 	{{-- <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%234f46e5;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%230ea5e9;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='50' y='70' font-size='60' font-family='Arial Black, Roboto Black, sans-serif-black' font-weight='900' text-anchor='middle' fill='url(%23grad1)'%3EICS%3C/text%3E%3C/svg%3E"> --}}
-	<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='60' fill='%234f46e5'/%3E%3Ctext x='50' y='66' font-size='55' font-family='Arial Black, Roboto Black, sans-serif-black' font-weight='900' text-anchor='middle' fill='white'%3EICS%3C/text%3E%3C/svg%3E">
+	<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='60' fill='%234f46e5'/%3E%3Ctext x='50' y='66' font-size='55' font-family='Arial Black, Roboto Black, sans-serif-black' font-weight='900' text-anchor='middle' fill='white'%3ECNS%3C/text%3E%3C/svg%3E">
 
 	{{-- OPSI 2: Jika nanti punya file logo sendiri (misal: public/logo.png), pakai ini: --}}
     {{-- <link rel="shortcut icon" href="{{ asset('logo.png') }}" type="image/x-icon"> --}}

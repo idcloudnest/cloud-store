@@ -27,6 +27,13 @@ Route::controller(App\Http\Controllers\Auth\ResetPasswordController::class)
 });
 Route::prefix('auth')->as('auth.')
 ->group(function () {
+	Route::controller(App\Http\Controllers\Auth\FirebaseAuthController::class)
+	->prefix('firebase')
+	->as('firebase.')
+	->group(function () {
+		Route::post('firebase-login', 'login')->name('login');
+	});
+
 	Route::controller(\App\Http\Controllers\Auth\AuthController::class)
 	->middleware('guest')
 	->group(function () {
@@ -91,6 +98,17 @@ Route::middleware(['auth', 'is_active'])->group(function () {
 			Route::get('dashboard', 'dashboard')->name('dashboard');
 		});
 
+		Route::controller(\App\Http\Controllers\Admin\ProviderController::class)
+		->as('providers.')
+		->prefix('providers')
+		->group(function () {
+			Route::get('/', 'index')->name('index');
+			Route::get('update', 'update')->name('update');
+			Route::post('store', 'store')->name('store');
+			Route::post('check-balance', 'checkBalance')->name('check-balance');
+			Route::post('toggle-status', 'toggleStatus')->name('toggle-status');
+		});
+
 		Route::controller(\App\Http\Controllers\Admin\TransactionsController::class)
 		->as('transactions.')
 		->prefix('transactions')
@@ -98,6 +116,8 @@ Route::middleware(['auth', 'is_active'])->group(function () {
 			Route::get('/', 'index')->name('index');
 			Route::get('form', 'form')->name('form');
 			Route::post('store', 'store')->name('store');
+			Route::post('resend', 'resendJob')->name('resend');
+			Route::get('detail/{transaction}', 'show')->name('show');
 		});
 
 		Route::prefix('products')
@@ -118,6 +138,7 @@ Route::middleware(['auth', 'is_active'])->group(function () {
 				->group(function () {
 					Route::get('/', 'index')->name('index');
 					Route::post('get-products-by-category', 'getProductsByCategory')->name('getProductsByCategory');
+					Route::post('get-brands-by-category', 'getBrandsByCategory')->name('get-brands-by-category');
 				});
 
 				Route::prefix('categories')

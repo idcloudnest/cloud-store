@@ -31,11 +31,43 @@
 			<span class="text-muted small">Kelola harga dan stok produk (Digiflazz/VIP)</span>
 		</div>
 		<div class="d-flex gap-2">
-			<button class="btn btn-outline-success btn-sm"><i class="fa-solid fa-cloud-arrow-down me-1"></i> Sync Produk</button>
+			<div class="dropdown">
+				<button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+					<i class="fa-solid fa-cloud-arrow-down me-1"></i> Sync Produk
+				</button>
+				<ul class="dropdown-menu shadow border-0">
+					<li><h6 class="dropdown-header small text-uppercase fw-bold">Pilih Provider</h6></li>
+
+					{{-- Loop Provider dari Database --}}
+					@foreach(\App\Models\Provider::where(['is_active' => 1, 'code' => 'digiflazz'])->get() as $prov)
+						<li>
+							<a class="dropdown-item d-flex justify-content-between align-items-center cursor-pointer btn-sync-trigger"
+							href="javascript:void(0)"
+							data-id="{{ $prov->id }}"
+							data-name="{{ $prov->name }}">
+								<span>{{ $prov->name }}</span>
+								{{-- Ikon kecil sesuai provider (opsional) --}}
+								<i class="fa-solid fa-server text-muted small ms-2"></i>
+							</a>
+						</li>
+					@endforeach
+
+					@if(\App\Models\Provider::count() == 0)
+						<li><span class="dropdown-item text-muted small">Belum ada provider</span></li>
+					@endif
+				</ul>
+			</div>
+
 			<button class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
 				<i class="fa-solid fa-plus me-1"></i> Tambah Produk
 			</button>
 		</div>
+		{{-- <div class="d-flex gap-2">
+			<button class="btn btn-outline-success btn-sm" id="sync-product"><i class="fa-solid fa-cloud-arrow-down me-1"></i> Sync Produk</button>
+			<button class="btn btn-primary btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
+				<i class="fa-solid fa-plus me-1"></i> Tambah Produk
+			</button>
+		</div> --}}
 	</div>
 
 	<div class="row g-3 mb-4">
@@ -331,7 +363,7 @@
 	<script>
 		$(document).ready(function() {
 			var table = $('#productTable').DataTable({
-				"language": { "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json" },
+				// "language": { "url": "//cdn.datatables.net/plug-ins/1.13.4/i18n/id.json" },
 				"dom": 'rtp',
 				"pageLength": 10,
 				"columnDefs": [ { "orderable": false, "targets": 5 } ], // No sort on Actions
@@ -355,6 +387,87 @@
 				else if(val == 'Habis') table.column(3).search('Gangguan|Habis', true, false).draw();
 				else table.column(3).search('').draw();
 			});
-		});
+
+			// $('#sync-product').click(function () {
+			// 	$.ajax({
+			// 		url: "{{ route('api.provider.sync-product') }}",
+			// 		type: "POST",
+			// 		data: { id: id },
+			// 		success: function(res) {
+			// 			// Animasi angka update
+			// 			text.fadeOut(200, function() {
+			// 				$(this).text(res.data.balance).fadeIn(200);
+			// 			});
+			// 			Swal.fire({
+			// 				toast: true, position: 'top-end', icon: 'success',
+			// 				title: 'Saldo: ' + res.data.balance, showConfirmButton: false, timer: 3000
+			// 			});
+
+			// 			lastUpdate(id, res.data.last_update)
+			// 		},
+			// 		error: function(err) {
+			// 			Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Gagal terhubung ke provider' });
+			// 		},
+			// 		complete: function() {
+			// 			btn.html(originalIcon).prop('disabled', false);
+			// 		}
+			// 	});
+			// })
+
+			$(document).on('click', '.btn-sync-trigger', function() {
+				let providerId   = $(this).data('id');
+				let providerName = $(this).data('name');
+
+				Swal.fire({
+					title: 'Sync ' + providerName + '?',
+					text: "Produk & Harga akan diperbarui dari server provider ini. Proses mungkin memakan waktu.",
+					icon: 'question',
+					showCancelButton: true,
+					confirmButtonColor: '#1f9d55',
+					cancelButtonColor: '#d33',
+					confirmButtonText: 'Ya, Mulai Sync',
+					cancelButtonText: 'Batal',
+					showLoaderOnConfirm: true, // Tampilkan loading spinner otomatis
+					preConfirm: () => {
+						// Return Promise Ajax
+						return $.ajax({
+							url: "{{ route('api.provider.sync-product') }}", // Ganti ke route universal
+							type: "POST",
+							data: {
+								provider_id: providerId,
+							}
+						})
+						.then(response => {
+							console.log(response);
+							if (response?.meta?.code !== 200) {
+								throw new Error(response?.meta?.message || 'Terjadi kesalahan!');
+							}
+							return response;
+						})
+						.catch(error => {
+							console.error(error);
+
+							Swal.showValidationMessage(
+								`Request failed: ${error.responseJSON ? error.responseJSON.meta.message : 'Gagal terhubung ke server!'}`
+							)
+						});
+					},
+					allowOutsideClick: () => !Swal.isLoading()
+				}).then((result) => {
+					console.log(result);
+
+					if (result.isConfirmed) {
+						Swal.fire({
+							title: 'Success!',
+							text: result.value?.meta?.message,
+							icon: 'success'
+						}).then(() => {
+							// Reload halaman atau refresh tabel otomatis
+							location.reload();
+						});
+					}
+				})
+			})
+		})
 	</script>
 @endpush

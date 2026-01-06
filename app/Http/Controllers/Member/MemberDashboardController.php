@@ -21,7 +21,7 @@ class MemberDashboardController extends Controller
 		// Hitung pengeluaran bulan ini (Opsional)
 		$expenseThisMonth = $user->transactions()
 								 ->whereMonth('created_at', now()->month)
-								 ->where('status', 'success')
+								 ->where('payment_status', 'paid')
 								 ->sum('amount');
 
 		return view('member.dashboard', compact('user', 'recentTransactions', 'expenseThisMonth'));

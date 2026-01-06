@@ -9,7 +9,7 @@ trait ApiResponser
 	 * * @param mixed $data (Bisa Array, Collection, Model, Request, atau Resource)
 	 */
 	protected function successResponse(
-		mixed $data,
+		mixed $data = null,
 		?string $message = null,
 		int $code = 200
 	)

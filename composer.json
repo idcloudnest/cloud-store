@@ -7,12 +7,16 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "kreait/laravel-firebase": "^6.2",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "laravel/ui": "^4.6",
         "midtrans/midtrans-php": "^2.6",
-        "timwassenburg/laravel-service-generator": "^1.0"
+        "predis/predis": "^3.3",
+        "timwassenburg/laravel-service-generator": "^1.0",
+        "vipayment/vipayment-php": "^1.0",
+        "yajra/laravel-datatables-oracle": "^11.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

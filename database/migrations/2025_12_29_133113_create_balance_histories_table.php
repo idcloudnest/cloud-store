@@ -15,9 +15,9 @@ return new class extends Migration
 			$table->id();
 			$table->foreignId('user_id')->constrained()->onDelete('cascade');
 			$table->enum('type', ['debit', 'credit']); // debit = uang masuk, credit = uang keluar
-			$table->bigInteger('amount'); // Jumlah uang
+			$table->decimal('amount', 15, 2); // Jumlah uang
 			$table->string('description'); // Contoh: "Refund Transaksi INV-123"
-			$table->bigInteger('last_balance'); // Saldo akhir setelah transaksi ini
+			$table->decimal('last_balance', 15, 2); // Saldo akhir setelah transaksi ini
 			$table->timestamps();
 		});
 	}

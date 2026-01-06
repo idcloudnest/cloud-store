@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y \
     bcmath \
     gd \
     zip \
+    && pecl install redis \
+    && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
@@ -44,4 +46,4 @@ USER ${UID}
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Run Laravel built-in server
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"]
+# CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"]

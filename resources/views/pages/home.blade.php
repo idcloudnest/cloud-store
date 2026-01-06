@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'ID Cloud Store')
+@section('title', 'Cloud Nest Store')
 
 @push('styles')
 <style>
@@ -94,9 +94,13 @@
 
 		<div class="d-flex justify-content-center flex-wrap gap-2" id="category-filters">
 			<button class="btn btn-outline-primary active rounded-pill px-4 filter-btn" data-filter="all">Semua</button>
-			<button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="game">Games</button>
-			<button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="pulsa">Pulsa</button>
-			<button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="voucher">Voucher</button>
+			@if (count($categories))
+				@foreach ($categories as $item)
+					<button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="{{ $item->category }}">{{ strtoupper($item->category) }}</button>
+				@endforeach
+			@endif
+			{{-- <button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="pulsa">Pulsa</button>
+			<button class="btn btn-outline-secondary rounded-pill px-4 filter-btn" data-filter="voucher">Voucher</button> --}}
 		</div>
 	</div>
 </section>
@@ -104,8 +108,49 @@
 
 <section class="container mb-5" id="products">
 	<div class="row g-3 g-md-4">
+		@if (count($brands))
+			@foreach ($brands as $item)
+				<div class="col-6 col-md-3 col-lg-2 product-item" data-category="{{ json_encode($item->category_list) }}">
+					<a href="{{ url('/topup/'.Str::slug($item->slug)) }}" class="text-decoration-none">
+						<div class="gaming-card h-100">
+
+							@if($item->slug == 'game' && $index % 2 == 0)
+								<div class="promo-badge">
+									<i class="fas fa-coins me-1"></i> Diskon
+								</div>
+							@endif
+
+							@php
+								// Jika Game: Full Cover. Jika Logo: Contain (utuh)
+								$imgClass = ($item['cat'] == 'game') ? 'object-fit-cover' : 'object-fit-contain';
+
+								$bgImageWrapper = ($item['cat'] == 'game') ? '' : 'background: #f1f5f9;';
+
+								$imgStyle = ($item['cat'] == 'game')
+									? ''
+									: 'padding: 1.5rem 1.5rem 3.5rem 1.5rem;';
+							@endphp
+
+							<div class="jagged-image-wrapper" style="{{ $bgImageWrapper }}">
+								<img src="{{ $item['img'] }}"
+								class="position-absolute top-0 start-0 w-100 h-100 {{ $imgClass }}"
+								style="{{ $imgStyle }}"
+								alt="{{ $item['name'] }}"
+								loading="lazy">
+							</div>
+
+							<div class="card-info text-center">
+								<div class="game-title text-truncate">{{ $item['name'] }}</div>
+								<div class="game-publisher">{{ $item['pub'] }}</div>
+							</div>
+
+						</div>
+					</a>
+				</div>
+			@endforeach
+		@endif
 		{{-- Data Dummy (Sama seperti sebelumnya) --}}
-		@php
+		{{-- @php
 		$products = [
 		['name' => 'Mobile Legends', 'cat' => 'game', 'pub' => 'Moonton', 'img' => 'https://cdn1.codashop.com/S/content/mobile/images/product-tiles/MLBB-2025-tiles-178x178.jpg'],
 		['name' => 'Free Fire', 'cat' => 'game', 'pub' => 'Garena', 'img' => 'https://cdn1.codashop.com/S/content/mobile/images/product-tiles/free-fire-tile-codacash-new.jpg'],
@@ -120,14 +165,12 @@
 			<a href="{{ url('/topup/'.Str::slug($item['name'])) }}" class="text-decoration-none">
 				<div class="gaming-card h-100">
 
-					{{-- Badge Promo --}}
 					@if($item['cat'] == 'game' && $index % 2 == 0)
 					<div class="promo-badge">
 						<i class="fas fa-coins me-1"></i> Diskon
 					</div>
 					@endif
 
-					{{-- LOGIC PHP UNTUK POSISI GAMBAR --}}
 					@php
 						// Jika Game: Full Cover. Jika Logo: Contain (utuh)
 						$imgClass = ($item['cat'] == 'game') ? 'object-fit-cover' : 'object-fit-contain';
@@ -155,7 +198,7 @@
 				</div>
 			</a>
 		</div>
-		@endforeach
+		@endforeach --}}
 
 	</div>
 </section>
@@ -166,16 +209,40 @@
 @push('scripts')
 <script>
 	// Logic Filter
+	// $('.filter-btn').click(function() {
+	// 	$('.filter-btn').removeClass('active btn-outline-primary').addClass('btn-outline-secondary');
+	// 	$(this).addClass('active btn-outline-primary').removeClass('btn-outline-secondary');
+
+	// 	const filter = $(this).data('filter');
+	// 	if (filter === 'all') {
+	// 		$('.product-item').fadeIn(200);
+	// 	} else {
+	// 		$('.product-item').hide();
+	// 		$('.product-item[data-category="' + filter + '"]').fadeIn(200);
+	// 	}
+	// });
+
 	$('.filter-btn').click(function() {
 		$('.filter-btn').removeClass('active btn-outline-primary').addClass('btn-outline-secondary');
 		$(this).addClass('active btn-outline-primary').removeClass('btn-outline-secondary');
 
 		const filter = $(this).data('filter');
+
 		if (filter === 'all') {
 			$('.product-item').fadeIn(200);
 		} else {
+			// Sembunyikan semua dulu
 			$('.product-item').hide();
-			$('.product-item[data-category="' + filter + '"]').fadeIn(200);
+
+			// Filter logic untuk Array
+			$('.product-item').filter(function() {
+				// Ambil data (jQuery otomatis mengubah JSON string jadi Array asli)
+				let categories = $(this).data('category');
+
+				// Cek apakah filter ada di dalam array categories
+				// Contoh: ["games", "pulsa"].includes("games") -> true
+				return Array.isArray(categories) && categories.includes(filter);
+			}).fadeIn(200);
 		}
 	});
 

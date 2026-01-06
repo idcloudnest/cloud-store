@@ -14,6 +14,7 @@ return new class extends Migration
 		Schema::create('products', function (Blueprint $table) {
 			$table->id();
 
+			$table->foreignId('provider_id')->constrained('providers')->onDelete('cascade');
 			$table->foreignId('brand_id')->constrained('brands')->onDelete('cascade');
 			$table->string('product_name');
 			$table->string('category', 50);
@@ -23,6 +24,7 @@ return new class extends Migration
 			$table->string('seller_name');
 
 			$table->decimal('price', 15, 2);
+			$table->decimal('selling_price', 15, 2)->default(0);
 
 			// Kode SKU (biasanya unique)
 			$table->string('buyer_sku_code')->unique();

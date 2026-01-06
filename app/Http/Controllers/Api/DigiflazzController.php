@@ -10,9 +10,11 @@ use App\Models\Brand;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exception;
+use App\Services\Provider\ProviderFactory;
 
 class DigiflazzController extends Controller
 {
+	use \App\Traits\ApiResponser;
 	protected DigiflazzService $digiflazz;
 
 	public function __construct(
@@ -36,14 +38,30 @@ class DigiflazzController extends Controller
 		);
 	}
 
+	public function checkUser(Request $request)
+	{
+		$transaction = $this->digiflazz->checkPlnId($request->customer_no);
+
+		if (!isset($transaction['data']))
+			return $this->errorResponse('Gagal menghubungi server penyedia (No Data).', 502);
+
+		$data = $transaction['data'];
+
+		if (isset($data['rc']) && $data['rc'] !== '00') {
+            $message = $data['message'] ?? 'ID Pelanggan tidak ditemukan.';
+            return $this->errorResponse($message, 400);
+        }
+
+		return $this->successResponse([
+			'name'          => trim($data['name']),
+			'meter_no'      => trim($data['meter_no']),
+			'customer_no'   => trim($data['customer_no']),
+			'segment_power' => trim($data['segment_power']),
+		], 'Data pelanggan ditemukan');
+	}
+
 	public function transaksi(Request $request)
 	{
-
-		// $request->validate([
-		// 	'sku' => 'required|string',
-		// 	'customer_no' => 'required|string',
-		// ]);
-
 		$refId = 'trx_' . time();
 
 		$buyerSkuCode = 'buyer-sku-code';
@@ -59,16 +77,19 @@ class DigiflazzController extends Controller
 		);
 	}
 
-	public function sync()
+	public function syncProduct(Request $request)
 	{
 		// Gunakan Transaction agar data aman (Rollback jika error di tengah jalan)
 		DB::beginTransaction();
 
 		try {
 			// 1. Panggil API ke Digiflazz
-			$response = $this->digiflazz->productList();
+			// $response = $this->digiflazz->productList();
 
-			\Log::debug(json_encode($response, JSON_PRETTY_PRINT));
+			$service = ProviderFactory::make('digiflazz');
+
+			$response = $service->productList();
+			// \Log::debug(json_encode($response, JSON_PRETTY_PRINT));
 
 			// 2. Validasi Response
 			if (!isset($response['data']) || !is_array($response['data'])) {
@@ -96,7 +117,7 @@ class DigiflazzController extends Controller
 				$brand = Brand::firstOrCreate(
 					[
 						'slug' => $brandSlug,
-						'category'  => $dbCategory,
+						// 'category'  => $dbCategory,
 					],
 					[
 						'name'      => $brandName,
@@ -117,6 +138,7 @@ class DigiflazzController extends Controller
 				Product::updateOrCreate(
 					['buyer_sku_code' => $item['buyer_sku_code']], // Cek berdasarkan SKU (Unik)
 					[
+						'provider_id'               => $brand->id, // Sambungkan ke Brand ID di atas
 						'brand_id'               => $brand->id, // Sambungkan ke Brand ID di atas
 						'brand'                  => $item['brand'],
 						'product_name'           => $item['product_name'],

@@ -8,21 +8,36 @@ use App\Models\Product;
 
 class ProductsController extends Controller
 {
+
+	use \App\Traits\ApiResponser;
+
 	public function index()
 	{
 		return view('admin.product.index');
 	}
 
+	public function getBrandsByCategory(Request $request)
+	{
+		$brands = Product::where('category', $request->category)
+			->select('brand')
+			->distinct()
+			->orderBy('brand', 'asc')
+			->get();
+
+		return $this->successResponse($brands, 'Ok.');
+	}
 	public function getProductsByCategory(Request $request)
 	{
-		$request->validate(['category' => 'required']);
+		// $request->validate(['category' => 'required']);
 
-		$products = Product::where('category', $request->category)
-			->active()
+		$products = Product::active()
+			->when($request->brand, fn($q) => $q->where('brand', $request->brand))
+			->when(!$request->brand, fn($q) => $q->where('category', $request->category))
+			->ignoreCheck()
 			->orderBy('price', 'asc')
 			->orderBy('product_name', 'asc')
-			->get(['buyer_sku_code', 'product_name', 'price']);
+			->get(['id','brand','buyer_sku_code', 'product_name', 'price']);
 
-		return response()->json($products);
+		return $this->successResponse($products, 'Ok.');
 	}
 }

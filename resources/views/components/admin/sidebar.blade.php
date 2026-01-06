@@ -1,3 +1,5 @@
+@php $route = Route::currentRouteName(); @endphp
+
 <div id="sidebar-wrapper" class="d-flex flex-column" style="overflow: hidden;">
 	<div class="sidebar-heading d-flex align-items-center justify-content-center">
 		<div class="bg-primary text-white rounded p-1 me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
@@ -5,7 +7,7 @@
 		</div>
 		<div class="text-start" style="line-height: 1;">
 			<div style="font-size: 1.1rem; font-weight: 800; letter-spacing: -0.5px;">
-				ID<span class="text-primary">Cloud</span>Store
+				Cloud<span class="text-primary">Nest</span>Store
 			</div>
 			<div class="fw-bold" style="font-size: 0.6rem; letter-spacing: 2px; color: #6c757d;">ADMIN PANEL</div>
 		</div>
@@ -13,12 +15,12 @@
 
 	<div class="list-group list-group-flush flex-grow-1 pb-4" style="overflow-y: auto; overflow-x: hidden;">
 		<a href="{{ route('admin.dashboard') }}"
-		class="list-group-item list-group-item-action sidebar-link {{ Request::is('admin/dashboard') ? 'active' : '' }}">
+		class="list-group-item list-group-item-action sidebar-link {{ $route == 'admin.dashboard' ? 'active' : '' }}">
 			<span class="menu-text"><i class="fas fa-tachometer-alt me-3 text-primary"></i>Dashboard</span>
 		</a>
 
 		<a href="{{ route('admin.transactions.index') }}"
-		class="list-group-item list-group-item-action {{ Request::is('admin/transactions') ? 'active' : '' }}">
+		class="list-group-item list-group-item-action {{ in_array($route, ['admin.transactions.index','admin.transactions.form']) ? 'active' : '' }}">
 			<span class="menu-text"><i class="fas fa-shopping-cart me-3 text-success"></i>Transaksi</span>
 		</a>
 
@@ -110,7 +112,7 @@
 		</div>
 
 
-		<a href="{{ route('admin.members.index') }}" class="list-group-item list-group-item-action {{ Request::is('admin/members') ? 'active' : '' }}">
+		<a href="{{ route('admin.members.index') }}" class="list-group-item list-group-item-action {{ $route == 'admin.members.index' ? 'active' : '' }}">
 			<span class="menu-text"><i class="fas fa-users me-3 text-info"></i>Member Area</span>
 		</a>
 
@@ -118,6 +120,20 @@
 		<a href="#" class="list-group-item list-group-item-action {{ Request::is('admin/laporan') ? 'active' : '' }}">
 			<span class="menu-text"><i class="fas fa-chart-line me-3 text-default"></i>Laporan</span>
 		</a>
+
+		{{-- <span class="text-white">{{$route}}</span> --}}
+		{{-- ================================================= --}}
+        {{-- BARU: BAGIAN PENGATURAN (PROVIDER DI SINI)        --}}
+        {{-- ================================================= --}}
+        <div class="fw-bold px-3 py-2 mt-3 text-white-50" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 4px;">
+            Pengaturan
+        </div>
+
+        <a href="{{ route('admin.providers.index') }}"
+           class="list-group-item list-group-item-action {{ Request::routeIs('admin.providers.*') ? 'active' : '' }}">
+            {{-- Icon Server dengan warna merah agar mencolok sebagai area teknis --}}
+            <span class="menu-text"><i class="fas fa-server me-3 text-danger"></i>Provider Server</span>
+        </a>
 
 	</div>
 	<div class="list-group list-group-flush border-top border-secondary" style="border-color: rgba(255,255,255,0.05) !important;">
