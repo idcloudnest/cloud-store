@@ -14,22 +14,26 @@ return new class extends Migration
 		Schema::create('products', function (Blueprint $table) {
 			$table->id();
 
-			$table->foreignId('provider_id')->constrained('providers')->onDelete('cascade');
-			$table->foreignId('brand_id')->constrained('brands')->onDelete('cascade');
+			$table->foreignId('provider_id')->nullable()->constrained('providers')->nullOnDelete();
+			$table->foreignId('brand_id')->nullable()->constrained('brands')->nullOnDelete();
+			$table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
 			$table->string('product_name');
-			$table->string('category', 50);
-			$table->string('brand', 50);
+			// $table->string('brand', 50);
 			$table->string('type', 50);
-
-			$table->string('seller_name');
-
-			$table->decimal('price', 15, 2);
-			$table->decimal('selling_price', 15, 2)->default(0);
 
 			// Kode SKU (biasanya unique)
 			$table->string('buyer_sku_code')->unique();
+			$table->string('seller_name');
+
+			$table->decimal('price', 15, 2);
+			$table->decimal('commission', 15, 2)->default(0);
+			$table->decimal('selling_price', 15, 2)->default(0);
+
+			$table->decimal('min_value', 15, 2)->default(0)->comment('Untuk E-Wallet Min value top up');
+			$table->decimal('max_value', 15, 2)->default(0)->comment('Untuk E-Wallet Max value top up');
 
 			// Status
+			$table->boolean('status')->default(true);
 			$table->boolean('buyer_product_status')->default(true);
 			$table->boolean('seller_product_status')->default(true);
 
@@ -38,14 +42,17 @@ return new class extends Migration
 			$table->unsignedInteger('stock')->default(0);
 
 			// Multi transaksi
-			$table->boolean('multi')->default(false);
+			$table->boolean('multi')->default(false)->comment('bisa transaksi berkali-kali ke nomor yang sama');
+
+			$table->boolean('id_discount')->default(false)->comment();
+			$table->decimal('discount_price')->default(0)->comment();
 
 			// Jam cut off
 			$table->time('start_cut_off')->nullable();
 			$table->time('end_cut_off')->nullable();
 
 			// Deskripsi
-			$table->string('description')->nullable();
+			$table->text('description')->nullable();
 			$table->timestamps();
 		});
 	}

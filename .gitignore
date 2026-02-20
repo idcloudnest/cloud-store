@@ -25,3 +25,5 @@ yarn-error.log
 
 backup.*
 /storage/app/*.json
+sawitdb
+*.pem

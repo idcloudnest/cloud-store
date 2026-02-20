@@ -67,11 +67,33 @@ Route::controller(App\Http\Controllers\TransactionController::class)
 	Route::post('checkout', 'checkout')->name('checkout');
 });
 
-Route::controller(App\Http\Controllers\ProductController::class)
-->as('topup.')
-->prefix('topup')
+
+Route::controller(\App\Http\Controllers\PaymentController::class)
+->prefix('payment')
 ->group(function () {
-	Route::get('/{slug}', 'topup')->name('detail');
+	// Payment Routes
+	Route::get('checkout', 'checkout')->name('payment.checkout');
+	Route::post('/payments/process', 'processPayment')->name('payment.process');
+	Route::get('/invoice/{ref}', 'invoice')->name('pages.invoice');
+
+	// Callback Duitku (WAJIB dikecualikan dari CSRF di VerifyCsrfToken middleware)
+	// Route::post('/api/callback/duitku', [CallbackController::class, 'duitkuHandler'])->name('api.callback.duitku');
+});
+
+Route::controller(App\Http\Controllers\Pages\OrderController::class)
+
+->group(function () {
+	Route::as('topup.')
+	->prefix('topup')
+	->group(function () {
+		Route::get('/{slug}', 'show')->name('show');
+	});
+
+	Route::as('checkout.')
+	->prefix('checkout')
+	->group(function () {
+		Route::post('checkout', 'checkout')->name('store');
+	});
 });
 // Route::middleware('role:member,reseller')->name('member.')->group(function () {
 
@@ -116,19 +138,36 @@ Route::middleware(['auth', 'is_active'])->group(function () {
 			Route::get('/', 'index')->name('index');
 			Route::get('form', 'form')->name('form');
 			Route::post('store', 'store')->name('store');
-			Route::post('resend', 'resendJob')->name('resend');
+			// Route::post('resend', 'resendJob')->name('resend');
 			Route::get('detail/{transaction}', 'show')->name('show');
+			Route::post('inquiry', 'pascaBayar')->name('inquiry');
 		});
 
 		Route::prefix('products')
 		->as('products.')
 		->group(function () {
+			Route::controller(\App\Http\Controllers\Admin\Product\CategoryController::class)
+			->prefix('categories')
+			->as('categories.')
+			->group(function () {
+				Route::get('/', 'index')->name('index');
+				Route::get('data', 'data')->name('data');
+				Route::get('show/{id}', 'show')->name('show');
+				Route::post('store', 'store')->name('store');
+				Route::post('update', 'update')->name('update');
+				Route::post('destroy', 'destroy')->name('destroy');
+				Route::post('assign', 'assignProducts')->name('assign');
+				Route::get('datatable/{id}/products', 'getProductsByCategory')->name('products');
+			});
+
 			Route::controller(\App\Http\Controllers\Admin\Product\BrandsController::class)
 			->prefix('brands')
 			->as('brands.')
 			->group(function () {
 				Route::get('/', 'index')->name('index');
 				Route::get('data', 'data')->name('data');
+				Route::post('form', 'form')->name('form');
+				Route::post('store', 'store')->name('store');
 			});
 
 			Route::controller(\App\Http\Controllers\Admin\Product\ProductsController::class)
@@ -137,15 +176,18 @@ Route::middleware(['auth', 'is_active'])->group(function () {
 				->as('items.')
 				->group(function () {
 					Route::get('/', 'index')->name('index');
+					Route::post('form', 'form')->name('form');
+					Route::post('store', 'store')->name('store');
 					Route::post('get-products-by-category', 'getProductsByCategory')->name('getProductsByCategory');
 					Route::post('get-brands-by-category', 'getBrandsByCategory')->name('get-brands-by-category');
+					Route::get('search', 'search')->name('search');
 				});
 
-				Route::prefix('categories')
-				->as('categories.')
-				->group(function () {
-					Route::get('/', 'index')->name('index');
-				});
+				// Route::prefix('categories')
+				// ->as('categories.')
+				// ->group(function () {
+				// 	Route::get('/', 'index')->name('index');
+				// });
 			});
 		});
 

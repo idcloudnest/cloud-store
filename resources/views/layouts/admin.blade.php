@@ -3,7 +3,8 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>@yield('title', 'Admin IDCloudStore')</title>
+	@php $appName = config('app.name'); @endphp
+	<title>{{$appName}} | @yield('title', "Admin $appName")</title>
 	<meta name="csrf-token" content="{{ csrf_token() }}">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -147,12 +148,15 @@
 			min-width: 0; /* SANGAT PENTING: Agar flex item tidak memaksa melebar */
 			width: 100%;
 		}
+
+		.nowrap {
+			white-space: nowrap;
+		}
 	</style>
 
 	@stack('styles')
 </head>
 <body>
-
 	<script>
 		(function() {
 			if (window.innerWidth >= 768) {
@@ -175,34 +179,70 @@
 		</div>
 	</div>
 
+
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-	{{-- Load SweetAlert2 CDN --}}
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+	{{-- How to use axios
+		params:
+		- url
+		- data_object = {key: value}
+
+		example:
+		- getMethod = await getRequest(url, data_object)
+		- postMethod = await postRequest(url, data_object)
+	--}}
+	<script src="{{ asset('requestor/axios.min.js') }}"></script>
+	<script src="{{ asset('requestor/axios.js') }}"></script>
+
 	<script>
+		let module
+		async function initModul() {
+			const master = await import("{{ url('/custom/js/master.js') }}")
+			return master
+		}
+
 		// Format Rupiah Helper
 		const formatRupiah = (number) => {
 			return new Intl.NumberFormat('id-ID', {
 				style: 'currency',
 				currency: 'IDR',
 				minimumFractionDigits: 0
-			}).format(number);
+			}).format(number)
 		}
 
+		// Format Date Helper
 		// weekday	'narrow',	'short',	'long'						Day of the week (e.g., "Monday", "Mon", "M").
 		// year		'numeric',	'2-digit'								Year (e.g., "2025", "25").
 		// month	'numeric',	'2-digit',	'narrow', 'short', 'long'	Month (e.g., "numeric" is "12", "long" is "December").
 		// day		'numeric',	'2-digit'								Day of the month (e.g., "31", "00").
-
-		// Format Date Helper
 		const formatDate = (dateString) => {
 			const date = new Date(dateString);
 			return date.toLocaleDateString('id-ID', {
 				day: '2-digit', month: 'short', year: 'numeric',
 				hour: '2-digit', minute: '2-digit', second: '2-digit'
 			});
+		}
+
+		$.fn.setRules = function(rules='a-zA-Z0-9'){
+			this.on('keypress',(e)=>{
+				let regex = new RegExp(`^[${rules}\b]+$`) // Rules only [ numeric ]
+				let key = String.fromCharCode(!e.charCode ? e.which : e.charCode) // Get character on keypress
+				if(!regex.test(key)){ // Bool, cek "key", rules regex terpenuhi(value===true)
+					e.preventDefault()
+					return false
+				}
+			})
+			this.on('paste', function(){
+				let el = this
+				setTimeout(function(){
+					const re = new RegExp(`[^${rules}]`,'g')
+					let convert = $(el).val().replace(re, '')
+					$(el).val(convert)
+				}, 20)
+			})
+			return this
 		}
 
 		$(document).ready(function () {
@@ -225,9 +265,9 @@
 					} else {
 						document.body.classList.toggle('sb-open');
 					}
-				});
+				})
 			}
-		});
+		})
 	</script>
 
 	@stack('scripts')

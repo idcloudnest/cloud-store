@@ -4,11 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Brand;
-use App\Models\Transaction;
-use App\Models\User;
-use App\Models\BalanceHistory;
-use App\Models\Product;
 use Illuminate\Database\QueryException; // Penting untuk menangkap error database
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\StoreTransactionRequest;
@@ -20,6 +15,14 @@ use Carbon\Carbon;
 use App\Services\TelegramService;
 
 use App\Services\Provider\ProviderFactory;
+
+// Models
+use App\Models\BalanceHistory;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Transaction;
+use App\Models\User;
 
 class TransactionsController extends Controller
 {
@@ -36,36 +39,15 @@ class TransactionsController extends Controller
 
 	public function show($id)
 	{
-		// Load relasi user dan product agar bisa ditampilkan namanya
-		$transaction = Transaction::with(['user', 'product'])->findOrFail($id);
+		$transaction = Transaction::with('user:id,name')->with(['product' => fn($q) => $q->select('id','product_name','category_id')->with('category:id,name')])
+		->where('invoice', $id)
+		->first();
+		// ->findOrFail($id);
 
 		return $this->successResponse(
 			$transaction,
 			'Ok.'
 		);
-	}
-
-	public function resendJob(Request $request)
-	{
-		$transaction = Transaction::where([
-			['id', '=', $request->id],
-			['payment_status', '=', 'paid'],
-			['delivery_status', '!=', 'success'],
-		])->first();
-
-		if (!$transaction) {
-			return $this->errorResponse('Transaksi tidak ditemukan', 404);
-		}
-
-		// Reset status agar tidak double process (Opsional, tergantung logic Anda)
-		// $transaction->update(['delivery_status' => 'pending']);
-
-		// Dispatch ulang ke Queue yang benar (Gunakan nama queue statis yg sudah kita bahas)
-		\App\Jobs\ProcessTransactionToProvider::dispatch($transaction->id)
-			->onQueue('transactions')
-			->afterCommit();
-
-		return $this->successResponse(message: 'Transaksi berhasil dikirim ulang ke antrian!');
 	}
 
 	public function index(Request $request)
@@ -81,7 +63,7 @@ class TransactionsController extends Controller
 				'transactions.created_at',
 				'payment_status',
 				'delivery_status'
-			])->with('product:id,category');
+			])->with(['product.category']);
 
 			return DataTables::of($data)
 				// Menambahkan kolom nomor urut otomatis (DT_RowIndex)
@@ -102,7 +84,7 @@ class TransactionsController extends Controller
 					// $btn .= '<li><a class="dropdown-item btn-detail" href="javascript:void(0)" data-id="'.$row->id.'"><i class="fa-solid fa-eye me-2 text-primary"></i> Details</a></li>';
 					// $btn .= '<li><a class="dropdown-item" href="javascript:void(0)"><i class="fa-solid fa-print me-2 text-secondary"></i> Cetak</a></li>';
 					// 1. Detail
-					$btn .= '<li><a class="dropdown-item btn-detail" href="javascript:void(0)" data-id="'.$row->id.'"><i class="fa-solid fa-eye me-2 text-primary"></i> Details</a></li>';
+					$btn .= '<li><a class="dropdown-item btn-detail" href="javascript:void(0)" data-id="'.$row->invoice.'"><i class="fa-solid fa-eye me-2 text-primary"></i> Details</a></li>';
 
 					// 2. Cetak
 					$btn .= '<li><a class="dropdown-item" href="javascript:void(0)"><i class="fa-solid fa-print me-2 text-secondary"></i> Cetak</a></li>';
@@ -111,7 +93,7 @@ class TransactionsController extends Controller
 
 					// 3. SEND ULANG JOBS (Baru)
 					// Hanya tampilkan jika status belum sukses (opsional logic)
-					if ($row->payment_status === 'paid' && $row->delivery_status !== 'success') {
+					if ($row->payment_status === 'paid' && $row->delivery_status === 'failed') {
 						$btn .= '<li><hr class="dropdown-divider"></li>';
 						$btn .= '<li><a class="dropdown-item btn-resend" href="javascript:void(0)" data-id="'.$row->id.'"><i class="fa-solid fa-paper-plane me-2 text-warning"></i> Kirim Ulang Job</a></li>';
 					}
@@ -178,9 +160,10 @@ class TransactionsController extends Controller
 					// Return HTML Badge dengan sedikit margin agar rapi
 					return '<span class="badge bg-'.$color.' fw-normal px-2 py-1">'.strtoupper($status).'</span>';
 				})
+				->addColumn('category', fn ($row) => $row?->product?->category?->name ?? '-')
 
 				// Wajib memberitahu kolom mana yang mengandung HTML agar tidak di-escape
-				->rawColumns(['action', 'payment_status', 'delivery_status'])
+				->rawColumns(['action', 'payment_status', 'delivery_status', 'category'])
 
 				// Finalisasi
 				->make(true);
@@ -189,11 +172,12 @@ class TransactionsController extends Controller
 		$trxCount = Transaction::count();
 		$trxPendingCount = Transaction::where('delivery_status', 'pending')->count();
 		$trxFailedCount = Transaction::where('delivery_status', 'failed')->count();
-		$categories = Product::categories()->get();
+		// $categories = Product::categories()->get();
+		$categories = Category::whereNotIn('id', [1,2])->get(['id', 'name']);
 		$date = Carbon::now('Asia/Jakarta');
 		$omzet = Transaction::where('delivery_status', 'success')->whereBetween('created_at', [
-			$date->copy()->startOfDay(), // 00:00:00 WIB (Otomatis jadi 17:00 Kemarin UTC)
-			$date->copy()->endOfDay()    // 23:59:59 WIB (Otomatis jadi 16:59 Hari Ini UTC)
+			$date->copy()->startOfMonth(), // 00:00:00 WIB (Otomatis jadi 17:00 Kemarin UTC)
+			$date->copy()->endOfMonth()    // 23:59:59 WIB (Otomatis jadi 16:59 Hari Ini UTC)
 		])
 		->sum('total_amount');
 
@@ -210,7 +194,7 @@ class TransactionsController extends Controller
 	{
 		$users = User::orderBy('name', 'asc')->get();
 
-		$categories = Product::categories()->get();
+		$categories = Category::all();
 		return view('admin.transactions.manual', ['categories' => $categories, 'users' => $users]);
 	}
 
@@ -276,48 +260,6 @@ class TransactionsController extends Controller
 				->onQueue('transactions') // <--- Nama queue bebas
 				->afterCommit();
 
-			// $reason = "Transaksi testing berhasil dibuat";
-			// $this->telegram->sendTransactionError($transaction, $reason);
-
-			// $customerNo = trim($transaction->customer_no . $transaction->zone_id);
-
-			// // Hit API Provider
-			// $service = ProviderFactory::make('digiflazz');
-
-			// $response = $service->transaction(
-			// 	refId: $transaction->invoice,
-			// 	skuCode: $transaction->sku_snapshot,
-			// 	destination: $customerNo
-			// );
-
-			// $apiData = $response['data'] ?? null;
-
-			// // KASUS 1: Tidak ada respon dari API / Error Koneksi
-			// if (empty($apiData)) {
-			// 	$reason = 'No Response from Provider (Empty Data)';
-			// 	$manualTransactionService->processRefund($transaction, $transaction->total_amount, $reason);
-			// 	DB::commit();
-			// 	$this->telegram->sendTransactionError($transaction, $reason);
-			// 	return;
-			// }
-
-			// // Cek RC (00 = Sukses, 03 = Pending)
-			// if (in_array($apiData['rc'], ['00', '03'])) {
-			// 	$status = ($apiData['rc'] === '00') ? 'success' : 'processing';
-
-			// 	$transaction->update([
-			// 		'delivery_status'  => $status,
-			// 		'sn'               => $apiData['sn'] ?? null,
-			// 		'provider_message' => $apiData['message'] ?? 'Diproses Provider',
-			// 	]);
-			// }
-			// // Transaksi Ditolak Provider (Gagal Langsung)
-			// else {
-			// 	$reason = $apiData['message'] ?? 'Gagal dari Provider (RC Unknown)';
-			// 	$manualTransactionService->processRefund($transaction, $transaction->total_amount, $reason);
-			// 	$this->telegram->sendTransactionError($transaction, $reason);
-			// }
-
 			DB::commit();
 
 			return $this->successResponse(
@@ -333,158 +275,52 @@ class TransactionsController extends Controller
 		}
 	}
 
-	// public function store(StoreTransactionRequest $request)
-	// // public function store(Request $request)
-	// {
-	// 	// return $this->successResponse($request->all(), 'Produk tidak ditemukan atau tidak aktif');
+	public function pascaBayar(Request $request)
+	{
+		try {
+			// 0709011699
+			$user = User::where('id', $request->user_id)->lockForUpdate()->first();
 
-	// 	DB::beginTransaction();
-	// 	try {
-	// 		$user = User::where('id', $request->user_id)->lockForUpdate()->first();
-	// 		// $product = Product::where('buyer_sku_code', $request->product_code)->first();
-	// 		$product = Product::find($request->product_code);
-	// 		// return $this->successResponse($product, 'Produk tidak ditemukan atau tidak aktif');
+			$product = Product::find($request->product_code);
 
-	// 		if (!$product) {
-	// 			DB::rollBack();
-	// 			return $this->errorResponse('Produk tidak ditemukan atau tidak aktif', 404);
-	// 		}
+			if (!$product) {
+				return $this->errorResponse('Produk tidak ditemukan atau tidak aktif', 404);
+			}
 
-	// 		$buyPrice = $product->price; // Harga Modal (Dari DB Product / Digiflazz)
+			$refId = 'INQ-' . time() . rand(100,999);
 
-	// 		// Logika Harga Jual:
-	// 		// Jika admin input harga manual (custom_price), pakai itu.
-	// 		// Jika tidak, pakai harga jual default produk (selling_price).
-	// 		// Jika selling_price belum diset, sementara pakai modal (tidak untung).
-	// 		$sellingPrice = $request->custom_price ?? $product->selling_price ?? $buyPrice; // Harga Modal (Dari DB Product / Digiflazz)
+			$service = ProviderFactory::make('digiflazz');
 
-	// 		if ($user->role === 'admin')
-	// 			$sellingPrice = $buyPrice;
+			$response = $service->transaction(
+				refId: $refId,
+				skuCode: $product->buyer_sku_code,
+				destination: $request->target,
+				commands: 'inq-pasca' // <--- cek tagihan
+			);
+			// Log::debug(json_encode($response, JSON_PRETTY_PRINT));
 
-	// 		// Hitung Dana Tersedia (Saldo Real + Batas Hutang)
-	// 		// Jika credit_limit null, anggap 0
-	// 		$availableFunds = $user->balance + ($user->credit_limit ?? 0);
+			$data = $response['data'] ?? null;
 
-	// 		// Pengecekan:
-	// 		// Jika user BUKAN admin, maka harus mengikuti limit.
-	// 		// (Opsional: Admin juga bisa dipaksa ikut limit demi keamanan)
-	// 		if ($user->role !== 'admin') {
-	// 			if ($availableFunds < $sellingPrice) {
-	// 				DB::rollBack();
-	// 				return $this->errorResponse(
-	// 					"Saldo tidak mencukupi. (Saldo: " . formatRupiah($user->balance) .
-	// 					", Limit Hutang: " . formatRupiah($user->credit_limit ?? 0) . ")",
-	// 					400
-	// 				);
-	// 			}
-	// 		}
+			// RC 00 = Sukses Cek Tagihan
+			if ($data && $data['rc'] === '00') {
+				return $this->successResponse(
+					[
+						'customer_name' => $data['customer_name'] ?? '-',
+						'customer_no'   => $data['customer_no'] ?? '-',
+						'admin_fee'     => $data['admin'] ?? '-',
+						'amount'        => $data['selling_price'] ?? '-', // Tagihan asli + admin dari provider
+						'desc'          => $data['desc'] ?? '-',
+						// Anda bisa simpan ref_id ini di session/db jika diperlukan untuk pay-pasca nanti
+					],
+					message: 'Tagihan ditemukan'
+				);
+			}
 
-	// 		$transaction = Transaction::create([
-	// 			'user_id'               => $user->id,
-	// 			'customer_no'           => $request->target,
-	// 			'zone_id'               => $request->zone_id,
-	// 			'product_id'            => $product->id,
-	// 			'product_name_snapshot' => $product->product_name,
-	// 			'sku_snapshot'          => $product->buyer_sku_code,
-	// 			'buy_price'             => $buyPrice,
-	// 			'amount'                => $sellingPrice,
-	// 			'total_amount'          => $sellingPrice,
-	// 			'payment_method'        => 'balance',
-	// 			'payment_status'        => 'paid',
-	// 			'delivery_status'       => 'processing',
-	// 		]);
+			return $this->errorResponse($data['message'] ?? 'Tagihan tidak ditemukan', 400);
 
-	// 		$user->balance -= $sellingPrice;
-	// 		$user->save();
-
-	// 		BalanceHistory::create([
-	// 			'user_id'      => $user->id,
-	// 			'type'         => 'credit', // Credit = Uang Keluar dari Dompet
-	// 			'amount'       => $sellingPrice,
-	// 			'description'  => "Pembelian {$product->product_name} - #{$transaction->invoice}",
-	// 			'last_balance' => $user->balance
-	// 		]);
-
-	// 		// Gabungkan Nomor + Zone ID jika ada (Format Game: 12345678901234)
-	// 		$customerNo = trim($transaction->customer_no . $transaction->zone_id);
-
-	// 		$response = $this->digiflazz->transaction(
-	// 			refId: $transaction->invoice,
-	// 			buyerSkuCode: $transaction->sku_snapshot,
-	// 			customerNo: $customerNo,
-	// 			// maxPrice: 500
-	// 		);
-
-	// 		$apiData = $response['data'] ?? null;
-
-	// 		if (empty($apiData)) {
-	// 			$this->manualTransactionService->processRefund($transaction, $sellingPrice, 'No Response from Provider');
-
-	// 			DB::commit();
-	// 			return $this->errorResponse('Gagal menghubungi provider. Saldo dikembalikan.', 502);
-	// 		}
-
-	// 		// Cek RC (00 = Sukses, 03 = Pending)
-	// 		if (in_array($apiData['rc'], ['00', '03'])) {
-	// 			$transaction->update([
-	// 				'delivery_status'  => $apiData['rc'] === '00' ? 'success' : 'processing',
-	// 				'sn'               => $apiData['sn'] ?? null,
-	// 				'provider_message' => $apiData['message'] ?? 'Transaksi diproses',
-	// 			]);
-
-	// 			DB::commit(); // Transaksi Final Sukses
-	// 			return $this->successResponse(null, 'Transaksi berhasil diproses', 201);
-
-	// 		} else {
-	// 			$this->manualTransactionService->processRefund($transaction, $sellingPrice, $apiData['message']);
-
-	// 			DB::commit();
-	// 			return $this->errorResponse('Transaksi Gagal: ' . $apiData['message'], 400);
-	// 		}
-	// 	} catch (QueryException $e) {
-	// 		$payload = $request->except(['pin', 'password', 'pin_transaksi']);
-
-	// 		// Ambil kode error MySQL
-	// 		$errorCode = $e->errorInfo[1] ?? 0;
-
-	// 		// Cek Error 1062 (Duplicate Entry)
-	// 		if ($errorCode == 1062) {
-	// 			DB::rollBack();
-
-	// 			Log::warning('RACE_CONDITION_TRANSAKSI', [
-	// 				'user_id' => $request->user_id ?? 'guest',
-	// 				'invoice_attempt' => $request->invoice ?? 'auto',
-	// 				'payload' => $payload,
-	// 			]);
-
-	// 			### KIRIM NOTIF KE TELEGRAM
-	// 			return $this->errorResponse('Gagal memproses ID unik (Race Condition). Silakan coba lagi.', 409);
-	// 		}
-
-	// 		DB::rollBack();
-
-	// 		Log::error('DB_EXCEPTION_STORE_TRANSAKSI', [
-	// 			'message' => $e->getMessage(),
-	// 			'file'    => $e->getFile(),
-	// 			'line'    => $e->getLine(),
-	// 			'user_id' => $request->user_id ?? 'guest',
-	// 			'payload' => $payload,
-	// 		]);
-
-	// 		### KIRIM NOTIF KE TELEGRAM
-	// 		return $this->errorResponse('Terjadi kesalahan pada server database.', 500);
-	// 	} catch (\Exception $e) {
-	// 		DB::rollBack();
-
-	// 		Log::error('GENERAL_EXCEPTION_STORE_TRANSAKSI', [
-	// 			'message' => $e->getMessage(),
-	// 			'trace'   => $e->getTraceAsString(), // Penting untuk debugging error umum
-	// 			'user_id' => $request->user_id ?? 'guest',
-	// 			'payload' => $request->except(['pin', 'password', 'pin_transaksi']),
-	// 		]);
-
-	// 		### KIRIM NOTIF KE TELEGRAM
-	// 		return $this->errorResponse('Internal Server Error.', 500);
-	// 	}
-	// }
+		} catch (\Exception $e) {
+			Log::error('CHECK BILL ERROR', ['message' => $th->getMessage()]);
+			return $this->errorResponse('Internal server error!');
+		}
+	}
 }

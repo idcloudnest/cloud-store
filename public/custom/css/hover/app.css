@@ -1,0 +1,11 @@
+.hover-danger:hover {
+	color: #cf3d3f !important;
+}
+
+.hover-secondary:hover {
+	color: #9ca5ad !important;
+}
+
+.hover-warning:hover {
+	color: #d5930e !important;
+}

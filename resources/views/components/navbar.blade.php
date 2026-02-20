@@ -1,29 +1,3 @@
-{{-- <nav class="navbar navbar-expand-lg fixed-top">
-	<div class="container">
-		<a class="navbar-brand fw-bold text-light" href="{{ route('pages.home') }}">
-			<i class="fas fa-cloud text-primary me-2"></i><span style="color: var(--text-main);">ID Cloud</span><span class="text-primary">Store</span>
-		</a>
-
-		<div class="d-flex align-items-center gap-3 order-lg-last">
-			<button class="btn btn-outline-secondary rounded-circle" id="themeToggle" style="width:40px; height:40px;">
-				<i class="fas fa-moon"></i>
-			</button>
-			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-				<span class="navbar-toggler-icon"></span>
-			</button>
-		</div>
-
-		<div class="collapse navbar-collapse" id="navbarNav">
-			<ul class="navbar-nav ms-auto me-4">
-				<li class="nav-item"><a class="nav-link active" href="{{ url('/') }}">Beranda</a></li>
-				<li class="nav-item"><a class="nav-link" href="{{ url('/#products') }}">Produk</a></li>
-				<li class="nav-item"><a class="nav-link" href="{{ url('/order') }}">Lacak Pesanan</a></li>
-			</ul>
-		</div>
-	</div>
-</nav> --}}
-
-
 @php $route = Route::currentRouteName(); @endphp
 
 <nav class="navbar navbar-expand-lg fixed-top transition-all">
@@ -31,17 +5,29 @@
 
 		{{-- LOGO (Tetap di Kiri) --}}
 		<a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ url('/') }}">
-			<div class="bg-primary text-white rounded p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+			{{-- <div class="bg-primary text-white rounded p-1 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
 				<i class="fa-solid fa-cloud-bolt"></i>
-			</div>
+			</div> --}}
+			<img src="{{ asset('cloudnest.png') }}" height="25" width="auto" alt="">
 			{{-- <span class="d-none d-sm-inline" style="color: var(--text-main);">ID<span class="text-primary">Cloud</span></span> --}}
-			<span style="color: var(--text-main);">Cloud Nest</span><span class="text-primary">Store</span>
+			@php
+				$explode = explode(' ', $appName);
+				$first = $last = $explode[0];
+				if (count($explode) == 3) {
+					$first = "{$explode[0]} {$explode[1]}";
+					$last = $explode[2];
+				} elseif (count($explode) == 2) {
+					$first = $explode[0];
+					$last = $explode[1];
+				}
+			@endphp
+			<span style="color: var(--text-main);">{{ $first }}</span><span class="text-primary">{{ $last }}</span>
 		</a>
 
 		{{-- TOGGLER MOBILE --}}
 		<div class="d-flex align-items-center gap-2 order-lg-last">
 			<button class="btn btn-link nav-link me-2 d-lg-none themeToggle">
-				<i class="fas fa-moon"></i>
+				<i class="fas"></i>
 			</button>
 
 			<button class="navbar-toggler border-0 p-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -74,7 +60,7 @@
 
 				{{-- Theme Toggle (Desktop Only) --}}
 				<button class="btn btn-link nav-link d-none d-lg-block me-2 themeToggle" id="themeToggle">
-					<i class="fas fa-moon"></i>
+					<i class="fas"></i>
 				</button>
 
 				{{-- Separator Tipis --}}
@@ -89,7 +75,7 @@
 					</a>
 				@else
 					{{-- Jika sudah login --}}
-					<a href="{{ route('member.dashboard') }}" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold text-white">
+					<a href="{{ auth()?->user()?->role === 'member' ? route('member.dashboard') : route('admin.dashboard') }}" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold text-white">
 						<i class="fas fa-user-circle me-1"></i> Dashboard
 					</a>
 				@endguest

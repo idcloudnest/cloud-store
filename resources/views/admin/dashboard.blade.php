@@ -1,6 +1,5 @@
 @extends('layouts.admin')
-
-@section('title', 'Admin IDCloudStore - Dashboard')
+@section('title', "Dashboard")
 
 @push('styles')
 <style>

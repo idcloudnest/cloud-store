@@ -1,4 +1,4 @@
-@extends('layouts.front')
+@extends('layouts.app')
 
 @section('title', 'Cara Order')
 
@@ -11,7 +11,7 @@
 			<i class="fas fa-list-ol fa-2x"></i>
 		</div>
 		<h2 class="fw-bold text-body">Cara Transaksi</h2>
-		<p class="text-muted">Panduan mudah melakukan pembelian di Cloud Nest Store.</p>
+		<p class="text-muted">Panduan mudah melakukan pembelian di {{ config('app.name') }}.</p>
 	</div>
 
 	{{-- STEPS GRID --}}

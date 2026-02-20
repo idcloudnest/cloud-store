@@ -12,17 +12,24 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libpng-dev \
+    libwebp-dev \
+    libjpeg-dev \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    libssh2-1-dev \
+    openssh-client \
     && docker-php-ext-install \
-    pdo_mysql \
-    mbstring \
-    bcmath \
-    gd \
-    zip \
+        pdo_mysql \
+        mbstring \
+        bcmath \
+        gd \
+        zip \
+    && docker-php-ext-configure gd --with-jpeg --with-webp \
+    && docker-php-ext-install gd \
     && pecl install redis \
-    && docker-php-ext-enable redis \
+    && pecl install ssh2 \
+    && docker-php-ext-enable redis ssh2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
@@ -44,6 +51,3 @@ USER ${UID}
 # RUN composer install
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-
-# Run Laravel built-in server
-# CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=80"]

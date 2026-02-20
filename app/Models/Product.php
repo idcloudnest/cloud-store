@@ -20,7 +20,44 @@ class Product extends Model
 	protected function priceRupiah(): Attribute
 	{
 		return Attribute::make(
-			get: fn () => "Rp " . number_format($this->price, 0, ',', '.')
+			get: fn () => formatRupiah($this->price)
+		);
+	}
+	protected function priceNf(): Attribute
+	{
+		return Attribute::make(
+			get: fn () => number_format($this->price, 0, ',', '.')
+		);
+	}
+	protected function sellingPriceRupiah(): Attribute
+	{
+		return Attribute::make(
+			get: fn () => formatRupiah($this->selling_price)
+		);
+	}
+	protected function sellingPriceNf(): Attribute
+	{
+		return Attribute::make(
+			get: fn () => number_format($this->selling_price, 0, ',', '.')
+		);
+	}
+	protected function minValueNf(): Attribute
+	{
+		return Attribute::make(
+			get: fn () => number_format($this->min_value, 0, ',', '.')
+		);
+	}
+	protected function maxValueNf(): Attribute
+	{
+		return Attribute::make(
+			get: fn () => number_format($this->max_value, 0, ',', '.')
+		);
+	}
+	protected function type(): Attribute
+	{
+		return Attribute::make(
+			// Gunakan $value (nilai asli dari database)
+			set: fn ($value) => strtolower($value),
 		);
 	}
 
@@ -71,6 +108,7 @@ class Product extends Model
 		return $query->where('buyer_sku_code', 'NOT LIKE', '%_CEK_%');
 	}
 
+	// RELATION
 	public function transactions(): HasMany
 	{
 		return $this->hasMany(Transaction::class);
@@ -83,6 +121,11 @@ class Product extends Model
 	{
 		return $this->belongsTo(Provider::class);
 	}
+	public function category(): BelongsTo
+	{
+		return $this->belongsTo(Category::class);
+	}
+
 
 	public static function getIcons()
 	{

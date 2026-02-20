@@ -53,6 +53,10 @@
 			<div class="fw-bold px-3 py-2 text-white-50" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 4px;">
 				Data Master
 			</div>
+			<a href="{{ route('admin.products.categories.index') }}"
+			class="list-group-item list-group-item-action sidebar-link {{ Request::is('admin/products/categories*') ? 'active' : '' }}">
+				<i class="fas fa-tags me-2 text-white-50" style="font-size: 0.8rem;"></i> Data Category
+			</a>
 			<a href="{{ route('admin.products.brands.index') }}"
 			class="list-group-item list-group-item-action sidebar-link {{ Request::is('admin/products/brands*') ? 'active' : '' }}">
 				<i class="fas fa-tags me-2 text-white-50" style="font-size: 0.8rem;"></i> Data Brand

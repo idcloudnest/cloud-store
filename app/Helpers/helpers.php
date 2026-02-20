@@ -17,3 +17,38 @@ if (!function_exists('formatRupiah')) {
 		return "Rp " . number_format($number, 0, ',', '.');
 	}
 }
+
+if (!function_exists('onlyNumber')) {
+	/**
+	 * Format angka ke Rupiah
+	 *
+	 * @param  mixed  $number
+	 * @return int
+	 */
+	function onlyNumber($number): int
+	{
+		return preg_replace('/\D/', '', $number);
+	}
+}
+
+if (!function_exists('assetParse')) {
+	/**
+	 * Format angka ke Rupiah
+	 *
+	 * @param  mixed  $url
+	 * @return string
+	 */
+	function assetParse(?string $path = ''): string
+	{
+		if (!$path)
+			return '';
+
+		$appUrl = config('app.url') ?: url('/');
+		$host   = parse_url($appUrl, PHP_URL_HOST);
+		return 'https://assets.idcloudnest.com/'.preg_replace(
+			'#^' . preg_quote($host, '#') . '/#',
+			'',
+			$path
+		);
+	}
+}

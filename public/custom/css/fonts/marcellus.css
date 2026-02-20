@@ -1,0 +1,11 @@
+.marcellus-regular {
+	font-family: "Marcellus", serif;
+	font-weight: 400;
+	font-style: normal;
+}
+
+.marcellus-bold {
+	font-family: "Marcellus", serif;
+	font-weight: bolder;
+	font-style: normal;
+}

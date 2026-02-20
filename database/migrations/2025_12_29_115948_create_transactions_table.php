@@ -14,6 +14,8 @@ return new class extends Migration
 		Schema::create('transactions', function (Blueprint $table) {
 			$table->id();
 
+			$table->enum('type', ['prabayar', 'pascabayar'])->default('prabayar');
+
 			// 1. Identitas Transaksi
 			$table->string('invoice')->unique()->comment("IDCS-ymd-ABCDEF");
 			$table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete()->comment("Jika user dihapus, transaksi jangan hilang");

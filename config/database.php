@@ -112,6 +112,10 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+		'sawit' => [
+			// 'database' => env('SAWIT_DB_DATABASE', database_path('plantation.sawit')),
+			'database' => storage_path('app/' . env('SAWIT_DB_DATABASE', database_path('plantation.sawit'))),
+		],
     ],
 
     /*

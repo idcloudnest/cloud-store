@@ -21,6 +21,7 @@ Route::as('api.')->group(function () {
 	->as('provider.')->prefix('provider')->group(function () {
 		Route::post('sync-product', 'syncProduct')->name('sync-product');
 		Route::post('check-username', 'checkUsername')->name('check-username');
+		Route::post('resend', 'resendJob')->name('resend');
 	});
 
 	Route::prefix('webhook')
@@ -39,6 +40,12 @@ Route::as('api.')->group(function () {
 
 		Route::controller(\App\Http\Controllers\Api\Webhook\WebhookMidtransController::class)
 		->prefix('midtrans')
+		->group(function () {
+			Route::post('callback', 'handle');
+		});
+
+		Route::controller(\App\Http\Controllers\Api\Webhook\WebhookDuitkuController::class)
+		->prefix('duitku')
 		->group(function () {
 			Route::post('callback', 'handle');
 		});

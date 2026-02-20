@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Brand extends Model
@@ -11,7 +12,7 @@ class Brand extends Model
 
 	protected $guarded = ['id'];
 
-	protected $appends = ['category_list'];
+	// protected $appends = ['category_list'];
 
 	public function scopeCategory($query)
 	{
@@ -24,7 +25,7 @@ class Brand extends Model
 	}
 	public function scopeGetCategories($query)
 	{
-		return $query->with(['products' => fn ($q) => $q->select('provider_id', 'brand_id', 'category')->distinct()->with('provider:id,name')]);
+		return $query->with(['products' => fn ($q) => $q->select('provider_id', 'brand_id', 'category_id')->distinct()->with('provider:id,name')]);
 	}
 
 	public function scopeActive($query)
@@ -37,17 +38,22 @@ class Brand extends Model
 		return $this->hasMany(Product::class);
 	}
 
-	public function getCategoryListAttribute()
-	{
-		// Cek apakah relasi products sudah di-load agar tidak error
-		if ($this->relationLoaded('products')) {
-			return $this->products
-				->pluck('category')
-				->unique()
-				->values()
-				->all();
-		}
+	// public function getCategoryListAttribute()
+	// {
+	// 	// Cek apakah relasi products sudah di-load agar tidak error
+	// 	if ($this->relationLoaded('products')) {
+	// 		return $this->products
+	// 			->pluck('category_id')
+	// 			->unique()
+	// 			->values()
+	// 			->all();
+	// 	}
 
-		return [];
+	// 	return [];
+	// }
+
+	public function category(): BelongsTo
+	{
+		return $this->belongsTo(Category::class);
 	}
 }

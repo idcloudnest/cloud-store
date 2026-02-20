@@ -49,7 +49,6 @@ class ProviderController extends Controller
 
 			return $this->errorResponse('Internal server error', 500);
 		}
-
 	}
 
 	public function toggleStatus(Request $request)

@@ -7,15 +7,18 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "intervention/image": "^3.11",
         "kreait/laravel-firebase": "^6.2",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "laravel/ui": "^4.6",
+        "league/flysystem-sftp-v3": "^3.30",
         "midtrans/midtrans-php": "^2.6",
         "predis/predis": "^3.3",
         "timwassenburg/laravel-service-generator": "^1.0",
         "vipayment/vipayment-php": "^1.0",
+        "wowoengine/sawitdb-php": "^1.0",
         "yajra/laravel-datatables-oracle": "^11.1"
     },
     "require-dev": {
@@ -78,5 +81,15 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "audit": {
+        "ignore": [
+            "PKSA-4p7m-np8m-fq35",
+            "PKSA-t5xz-td8w-f35v",
+            "PKSA-jsh4-f6tg-bwyq",
+            "PKSA-vpz8-6fv7-t3fd",
+            "PKSA-qrgb-4pgm-cz41",
+            "PKSA-mnsd-qtjt-pgcq"
+        ]
+    }
 }

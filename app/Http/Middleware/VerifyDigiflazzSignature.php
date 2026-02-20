@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Log;
 use App\Models\Provider;
+use Illuminate\Support\Facades\Cache;
 
 class VerifyDigiflazzSignature
 {
@@ -27,9 +28,6 @@ class VerifyDigiflazzSignature
 
 		// PENTING: Jangan pakai $request->all(), harus getContent() agar akurat
 		$payload = $request->getContent();
-		Log::debug('HEADER_DIGIFLAZZ', ['header' => $request->header()]);
-
-		Log::debug('PAYLOAD_DIGIFLAZZ', ['payload' => $request->input('data')]);
 
 		// Rumus: HMAC-SHA1 dari Payload + Secret Key
 		$calculatedSignature = 'sha1=' . hash_hmac('sha1', $payload, $secretKey);
@@ -43,7 +41,10 @@ class VerifyDigiflazzSignature
 
 		// hash_equals digunakan untuk mencegah timing attack
 		if (!hash_equals($calculatedSignature, (string) $incomingSignature)) {
-			Log::warning('Percobaan akses Webhook Digiflazz dengan signature salah!');
+			Log::warning('Percobaan akses Webhook Digiflazz dengan signature salah!', [
+				'header' => $request->header(),
+				'payload' => $request->input('data'),
+			]);
 			return response()->json([
 				'status' => 'error',
 				'message' => 'Unauthorized: Invalid Signature'

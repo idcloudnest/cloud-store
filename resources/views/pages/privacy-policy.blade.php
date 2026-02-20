@@ -1,6 +1,6 @@
 @extends('layouts.app')
-
-@section('title', 'Kebijakan Privasi - Cloud Nest Store')
+@php $appName = config('app.name'); @endphp
+@section('title', "Kebijakan Privasi - $appName")
 
 @push('styles')
 <style>
@@ -73,7 +73,7 @@
 @endpush
 
 @section('content')
-<div class="container mt-5 py-5 glow-container">
+<div class="container py-5 glow-container">
 	<div class="glow-blob blob-1"></div>
 	<div class="glow-blob blob-2"></div>
 
@@ -92,7 +92,7 @@
 
 					<div class="mb-5">
 						<p class="text-content lead">
-							Selamat datang di <strong>Cloud Nest Store</strong>. Kami berkomitmen untuk melindungi privasi dan keamanan informasi pribadi Anda. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi Anda saat Anda menggunakan layanan kami.
+							Selamat datang di <strong class="fw-bold">{{ $appName }}</strong>. Kami berkomitmen untuk melindungi privasi dan keamanan informasi pribadi Anda. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan melindungi informasi Anda saat Anda menggunakan layanan kami.
 						</p>
 					</div>
 
@@ -170,7 +170,7 @@
 							<i class="fab fa-whatsapp me-2"></i> +62 895-3208-94991
 						</p>
 						<small class="text-muted d-block mt-3">
-							Terima kasih telah mempercayakan informasi pribadi Anda kepada <strong>Cloud Nest Store</strong>.
+							Terima kasih telah mempercayakan informasi pribadi Anda kepada <strong>{{ $appName }}</strong>.
 						</small>
 					</div>
 

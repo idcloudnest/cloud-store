@@ -59,20 +59,19 @@ class ProcessTransactionToProvider implements ShouldQueue
 			// Gabungkan Nomor Tujuan
 			$customerNo = trim($transaction->customer_no . $transaction->zone_id);
 
-			// $provider = Provider::find($transaction->provider_id);
-			// if (!$provider) {
-			// 	Log::error("Provider ID {$transaction->provider_id} tidak ditemukan.");
-			// 	throw new \Exception("Provider ID {$transaction->provider_id} tidak ditemukan.");
-			// }
+			$commands = ''; // Default kosong untuk Prabayar
+			if (isset($transaction->product->type) && strtolower($transaction->product->type) === 'pascabayar') {
+				$commands = 'pay-pasca';
+			}
 
 			// Hit API Provider
-			// $service = ProviderFactory::make($provider->code);
 			$service = ProviderFactory::make('digiflazz');
 
 			$response = $service->transaction(
 				refId: $transaction->invoice,
 				skuCode: $transaction->sku_snapshot,
-				destination: $customerNo
+				destination: $customerNo,
+				commands: $commands, // <--- bayar tagihan
 			);
 
 			$apiData = $response['data'] ?? null;

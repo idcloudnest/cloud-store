@@ -29,9 +29,10 @@ class DigiflazzGateway extends BaseProvider implements ProviderInterface
 		]);
 	}
 
-	public function productList(): array
+	public function productList(string $cmd = 'prepaid'): array
 	{
 		return $this->post('/price-list', [
+			'cmd'      => $cmd,
 			'username' => $this->provider->api_username,
 			'sign'     => $this->signature('pricelist'),
 		]);
@@ -41,6 +42,7 @@ class DigiflazzGateway extends BaseProvider implements ProviderInterface
 		string $refId,
 		string $skuCode,
 		string $destination,
+		?string $commands = '',
 		// array $options = [],
 		// ?bool $testing = null,
 		// ?int $maxPrice = null,
@@ -61,6 +63,13 @@ class DigiflazzGateway extends BaseProvider implements ProviderInterface
 		// if (isset($options['testing'])) {
 		// 	$payload['testing'] = $options['testing'];
 		// }
+
+		if ($commands) { # Hanya untuk pascabayar
+			$payload['commands'] = $commands;
+			// inq-pasca => cek tagihan
+			// pay-pasca => bayar tagihan
+			// status-pasca => cek status transaksi
+		}
 
 		// Jika mode development di DB aktif, otomatis testing = true
 		if ($this->provider->mode === 'development') {

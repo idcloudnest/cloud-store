@@ -14,6 +14,7 @@ services:
       - "8001:80"
     volumes:
       - .:/app
+      - ~/.ssh/dwialim.pem:/app/dwialim.pem:ro
     env_file:
       - .env
     restart: always
@@ -23,7 +24,7 @@ services:
 
   cloud-store-queue-dev:
     image: store-dev:latest
-    container_name: cloud-store-queue
+    container_name: cloud-store-queue-dev
     # command: php artisan queue:work --tries=3 --timeout=90
     environment:
       - TYPE=QUEUE
@@ -32,7 +33,35 @@ services:
     env_file:
       - .env
     restart: always
-    command: php artisan queue:work --queue=transactions,default --tries=3 --timeout=90
+    command: php artisan queue:work --queue=transactions,logging,default --tries=3 --timeout=30
+    networks:
+      - core
+
+  cloud-store-scheduler-dev:
+    image: store-dev:latest
+    container_name: cloud-store-scheduler-dev
+    environment:
+      - TYPE=SCHEDULER
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: always
+    command: php artisan schedule:work
+    networks:
+      - core
+
+  cloud-store-sawit-db-dev:
+    image: store-dev:latest
+    container_name: cloud-store-sawit-db-dev
+    environment:
+      - TYPE=DB_SAWIT
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: always
+    command: php sawitdb/bin/sawit-server.php
     networks:
       - core
 

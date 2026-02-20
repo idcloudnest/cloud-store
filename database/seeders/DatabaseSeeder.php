@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
 		// $this->call(DigiflazzCredentialSeeder::class);
 		$this->call(ProviderSeeder::class);
 		$this->call(TelegramBotSeeder::class);
+		$this->call(CategorySeeder::class);
 		// $this->call(ProductSeeder::class);
 	}
 }

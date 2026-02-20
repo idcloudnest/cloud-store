@@ -14,15 +14,16 @@ if [ -z "$APP_KEY" ]; then
   php artisan key:generate
 fi
 
-if [ "$TYPE" = "QUEUE" ]; then
-    echo "📦 Container TYPE is '${TYPE}'. Skipping migrations & seeds."
-else
-    echo "⏩ Container TYPE is '${TYPE}'. Running migrations & seeds..."
-    # Migration & seed
-    php artisan migrate:fresh --force
-    php artisan db:seed --force
+# if [ "$TYPE" = "QUEUE" ] || [ "$TYPE" = "SCHEDULER" ]; then
+if [ "$TYPE" = "WEB" ]; then
+	echo "⏩ Container TYPE is '${TYPE}'. Running migrations & seeds..."
+	# Migration & seed
+	# php artisan migrate:fresh --force
+	# php artisan db:seed --force
 
-    echo "✅ Database setup complete!"
+	echo "✅ Database setup complete!"
+else
+	echo "📦 Container TYPE is '${TYPE}'. Skipping migrations & seeds."
 fi
 
 # Jalankan command utama (artisan serve)

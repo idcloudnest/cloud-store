@@ -60,6 +60,18 @@ return [
             'report' => false,
         ],
 
+		'sftp_assets' => [
+			'driver' => 'sftp',
+			'host' => env('SFTP_HOST'),
+			'port' => env('SFTP_PORT', 22),
+			'username' => env('SFTP_USERNAME'),
+			'password' => env('SFTP_PASSWORD', null),
+			'privateKey' => env('SFTP_PRIVATE_KEY'),
+			'root' => env('SFTP_ROOT'),
+			'timeout' => 30,
+			'permPublic' => 0755, // Optional: set permissions for public files
+		],
+
     ],
 
     /*
