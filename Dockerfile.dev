@@ -1,7 +1,7 @@
 FROM php:8.2-cli
 
-ARG UID=1000
-ARG GID=1000
+ARG UID=1001
+ARG GID=1001
 
 WORKDIR /app
 
@@ -48,6 +48,6 @@ RUN chmod +x /app/entrypoint.sh
 
 USER ${UID}
 
-# RUN composer install
+RUN composer install
 
 ENTRYPOINT ["/app/entrypoint.sh"]

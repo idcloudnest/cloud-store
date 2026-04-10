@@ -3,7 +3,7 @@ name: Auto Deploy (Self-Hosted)
 on:
   push:
     branches:
-      - master
+      - test
 
 jobs:
   deploy:

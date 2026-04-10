@@ -10,9 +10,9 @@ echo "🚀 Starting Laravel initialization..."
 # done
 
 # Generate key kalau belum ada
-if [ -z "$APP_KEY" ]; then
-  php artisan key:generate
-fi
+# if [ -z "$APP_KEY" ]; then
+#   php artisan key:generate
+# fi
 
 # if [ "$TYPE" = "QUEUE" ] || [ "$TYPE" = "SCHEDULER" ]; then
 if [ "$TYPE" = "WEB" ]; then

@@ -27,3 +27,4 @@ backup.*
 /storage/app/*.json
 sawitdb
 *.pem
+id_rsa
