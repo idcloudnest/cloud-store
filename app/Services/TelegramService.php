@@ -70,6 +70,20 @@ class TelegramService
 		return $this->sendMessage($text);
 	}
 
+	public function sendTransactionPending($transaction, $reason = "")
+	{
+		$destination = $transaction->customer_no . ($transaction->zone_id ? " ($transaction->zone_id)" : "");
+
+		$text = "⏳ <b>TRANSAKSI PENDING</b> ⏳\n\n";
+		$text .= "<b>Invoice:</b> #{$transaction->invoice}\n";
+		$text .= "<b>Produk:</b> {$transaction->product_name_snapshot}\n";
+		$text .= "<b>Tujuan:</b> {$destination}\n";
+		$text .= "<b>User:</b> {$transaction->user?->name}\n\n";
+		$text .= "ℹ️ <b>Status:</b> {$reason}\n";
+
+		return $this->sendMessage($text);
+	}
+
 	/**
 	 * Kirim notifikasi Error System/Exception
 	 */
@@ -78,6 +92,15 @@ class TelegramService
 		$text = "🔥 <b>SYSTEM ERROR (JOB)</b> 🔥\n\n";
 		$text .= "<b>Trx ID:</b> {$transactionId}\n";
 		$text .= "<b>Error:</b> <pre>{$errorMessage}</pre>";
+
+		return $this->sendMessage($text);
+	}
+
+	public function sendInactiveProducts($products, $reason = "")
+	{
+		$text = "🚫 <b>PRODUK NONAKTIF</b> 🚫\n\n";
+		$text .= $products;
+		$text .= $reason;
 
 		return $this->sendMessage($text);
 	}

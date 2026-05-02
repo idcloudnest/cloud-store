@@ -62,6 +62,8 @@ return new class extends Migration
 
 			$table->string('snap_token')->nullable()->comment("Snap token midtrans");
 
+			$table->timestamp('last_notified_at')->nullable()->comment("Notifikasi Telegram");
+
 			$table->timestamps();
 		});
 	}

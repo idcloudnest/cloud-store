@@ -9,10 +9,13 @@ use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use SawitLog;
 
 // Models
 use App\Models\Category;
 use App\Models\Product;
+use SawitDB;
+use App\Sawit\Models\Log as LogModel;
 
 class CategoryController extends Controller
 {
@@ -20,6 +23,122 @@ class CategoryController extends Controller
 
 	public function index(Request $request)
 	{
+		// \Log::debug('tes');
+		// return 'ok';
+		// return LogModel::get();
+		// $log = LogModel::
+		// // where('created_at', '2026-01-11T15:00:54+00:00')->
+		// // get();
+		// // orderBy('created_at', 'desc')->
+		// first();
+		// // find('2026-01-11T15:01:18+00:00');
+		// return $log;
+		// $errors = LogModel::query()
+		// // ->where('level', 'error')
+		// // ->orderBy('created_at')
+		// // ->limit(10)
+		// ->first();
+		// return response()->json($errors);
+		// Log::create([
+		// 	'type' => 'SYSTEM',
+		// 	'level' => 'error',
+		// 	'message' => 'Undefined variable $b',
+		// 	'context' => [
+		// 		'product_id' => 113,
+		// 	],
+		// 	'created_at' => now(),
+		// ]);
+
+		// SawitLog::error(
+		// 	type: 'SYSTEM',
+		// 	message: "Testing error pertama",
+		// 	context: $request->all(),
+		// 	// refId: $request->product_id,
+		// 	refId: 123,
+		// );
+		// return "ok";
+
+		// return $threshold = now()->subDays(30)->toDateTimeString();
+		// $threshold = '2026-01-11 04:13:58';
+		// $sawit = SawitDB::query("PANEN * DARI cloud_nest_logs");
+		// $sawit = SawitDB::query("PANEN * DARI cloud_nest_logs DIMANA time <= '{$threshold}'");
+
+		// return $range = DateQueryHelper::whereDate(now());
+		// return now('Asia/Jakarta')->toIso8601String();
+		// return $range = DateQueryHelper::whereDate('2026-01-10');
+		// return now();
+
+		// $query = DateQueryHelper::whereDateSql(
+		// 	column: 'created_at',
+		// 	date: now()->subDay(0)
+		// 	// date: now()->addDay(1)
+		// );
+
+		// return SawitDB::table('logs')
+		// 	->select('id', 'type', 'level', 'message', 'created_at')
+		// 	->get();
+
+		// $sawit = SawitDB::query("PANEN * DARI logs DIMANA {$query}");
+		// $sawit = SawitDB::query("PANEN * DARI logs");
+		// // $sawit = SawitDB::query("GUSUR DARI logs DIMANA level = 'error'");
+		// return $sawit;
+
+		// $now = now()->toIso8601String();
+		// SawitDB::query("TANAM KE logs (
+		// 		created_at,
+		// 		level,
+		// 		type,
+		// 		ref_id,
+		// 		message,
+		// 		context
+		// 	) BIBIT (
+		// 		'{$now}',
+		// 		'error',
+		// 		'system',
+		// 		'123',
+		// 		'pesan',
+		// 		''
+		// 	)
+		// ");
+		// return "stored";
+
+		// return SawitDB::query("LAHAN logs;
+		// 	TANAM KE logs (
+		// 		id AUTO,
+		// 		type STRING,
+		// 		ref_id STRING,
+		// 		message STRING,
+		// 		context JSON,
+		// 		level STRING,
+		// 		created_at DATETIME
+		// 	)
+		// ");
+		// return SawitDB::query("BAKAR LAHAN cloud_nest_logs");
+		// return SawitDB::query("LIHAT LAHAN");
+		// SawitLog::error(
+		// 	type: 'payment.failed',
+		// 	message: 'Timeout from provider',
+		// 	context: [
+		// 		'provider' => 'TELKOMSEL',
+		// 		'timeout_ms' => 3000,
+		// 	],
+		// 	refId: 1111,
+		// );
+		// return "Ok";
+
+		// return SawitDB::query("LAHAN logs;
+		// 	TANAM KE logs (
+		// 		id AUTO,
+		// 		type STRING,
+		// 		ref_id STRING,
+		// 		message STRING,
+		// 		context JSON,
+		// 		level STRING,
+		// 		created_at DATETIME
+		// 	)
+		// ");
+
+		// return SawitDB::query("LIHAT LAHAN");
 		if ($request->ajax()) {
 			$data = Category::with('parent')->withCount('products');
 

@@ -34,7 +34,7 @@ class StoreTransactionRequest extends FormRequest
 
 			// Wajib jika BUKAN games
 			'target' => [
-				'exclude_if:category_id,games',
+				'exclude_if:category_id,6',
 				// 'required_unless:category_id,games',
 				'required',
 				'string',

@@ -35,7 +35,7 @@ class CheckTransactionStatus extends Command
 			->whereIn('delivery_status', ['processing', 'pending'])
 			->where('created_at', '>=', now()->subDays(30))
 			->with(['product:id,type'])
-			->chunkById(10, function ($transactions) use ($refundService) {
+			->chunkById(10, function ($transactions) use ($refundService, $telegram) {
 				foreach ($transactions as $trx) {
 					try {
 						$customerNo = trim($trx->customer_no . $trx->zone_id);
@@ -71,7 +71,11 @@ class CheckTransactionStatus extends Command
 								// Tidak perlu update DB jika status sudah 'processing',
 								// atau update timestamp 'updated_at' untuk tanda masih dipantau
 								// Log::info("SCHEDULER: TRX {$trx->invoice} Still Pending...");
-								$telegram->sendTransactionError($trx, $data['message'] ?? "SCHEDULER: TRX {$trx->invoice} Still Pending...");
+								if (!$trx->last_notified_at || now()->diffInMinutes($trx->last_notified_at) > 30) {
+									$telegram->sendTransactionPending($trx, $data['message'] ?? "SCHEDULER: TRX {$trx->invoice} Still Pending...");
+
+									$trx->update(['last_notified_at' => now()]);
+								}
 							}
 							else {
 								$failReason = $data['message'] ?? 'Gagal dari Provider';

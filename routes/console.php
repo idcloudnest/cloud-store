@@ -15,15 +15,17 @@ Schedule::command('app:check-transaction-status')
 	->sendOutputTo(storage_path('logs/check-transaction-status.log'));
 
 Schedule::command('digiflazz:sync-product 1 prepaid')
+	->name('sync-product-prepaid')
 	// ->everyTenMinutes()
 	->cron('*/10 * * * *')
-	->withoutOverlapping()
+	->withoutOverlapping(20)
 	->runInBackground()
 	->sendOutputTo(storage_path('logs/sync-digiflazz-product-prepaid.log'));
 Schedule::command('digiflazz:sync-product 1 pasca')
+	->name('sync-product-pasca')
 	// ->everyTenMinutes()
-	->cron('*/10 * * * *')
-	->withoutOverlapping()
+	->cron('*/15 * * * *')
+	->withoutOverlapping(20)
 	->runInBackground()
 	->sendOutputTo(storage_path('logs/sync-digiflazz-product-pasca.log'));
 

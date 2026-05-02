@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
+use App\Services\TelegramService;
+
 class SyncDigiflazzProduct extends Command
 {
 	/**
@@ -34,7 +36,7 @@ class SyncDigiflazzProduct extends Command
 	/**
 	 * Execute the console command.
 	 */
-	public function handle(): int
+	public function handle(TelegramService $telegram): int
 	{
 		$providerId = (int) $this->argument('provider_id');
 		$type       = $this->argument('type');
@@ -65,7 +67,14 @@ class SyncDigiflazzProduct extends Command
 
 
 			$processed = 0;
+			$productNonActive = [];
 			foreach ($response['data'] as $item) {
+
+				if ($item['seller_product_status'] == false) {
+					$string = (count($productNonActive) + 1) . ". <b>{$item['product_name']}</b>\n";
+					$string .= "    <b>Kode:</b> {$item['buyer_sku_code']}\n";
+					$productNonActive[] =  $string;
+				}
 
 				// ===== BRAND =====
 				$brand = Brand::firstOrCreate(
@@ -121,7 +130,7 @@ class SyncDigiflazzProduct extends Command
 
 			DB::commit();
 
-			$this->info("✅ Sync selesai. Total produk: {$processed}");
+			$this->info("✅ [" . now()->translatedFormat('d M Y H:i:s') . "] Sync selesai. Total produk: {$processed}");
 
 			// Log::info('DIGIFLAZZ PRODUCT SYNC SUCCESS', [
 			// 	'provider' => $provider->name,
@@ -129,12 +138,16 @@ class SyncDigiflazzProduct extends Command
 			// 	'total'    => $processed
 			// ]);
 
+			if (count($productNonActive)) {
+				$telegram->sendInactiveProducts(implode("\n", $productNonActive), "\nℹ️ Keterangan: Maintenance provider");
+			}
+
 			return Command::SUCCESS;
 
 		} catch (Exception $e) {
 			DB::rollBack();
 
-			$this->error("❌ Sync gagal: {$e->getMessage()}");
+			$this->error("❌ [" . now()->translatedFormat('d M Y H:i:s') . "] Sync gagal: {$e->getMessage()}");
 
 			Log::error('DIGIFLAZZ PRODUCT SYNC FAILED', [
 				'provider_id' => $providerId,

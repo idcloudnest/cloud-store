@@ -513,7 +513,8 @@
 					$targetInput.addClass('text-muted')
 				},
 				success: function(response) {
-					if (response?.data?.rc === '00') {
+
+					if (response?.data?.rc === '00' || response?.meta?.code == 200) {
 						const data = response.data
 
 						let info = `<i class="fas fa-check-circle me-1"></i> ${data.name ?? data}`;

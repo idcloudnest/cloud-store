@@ -147,7 +147,7 @@ class ProductsController extends Controller
 				->editColumn('selling_price', function ($row){
 					return  '<span class="badge badge-soft-success fw-bold px-2 py-1">' . formatRupiah($row->selling_price) . '</span>';
 				})
-				->editColumn('status', fn($row) => $row->status ? '<span class="badge badge-soft-success">AKTIF</span>' : '<span class="badge badge-soft-danger">NON-AKTIF</span>')
+				->editColumn('status', fn($row) => $row->status && $row->seller_product_status ? '<span class="badge badge-soft-success">AKTIF</span>' : '<span class="badge badge-soft-danger">NON-AKTIF</span>')
 				// Menambahkan kolom custom 'action' (tombol edit/hapus)
 				->addColumn('action', function($row){
 					// $btn = '<div class="dropdown text-end">';

@@ -63,7 +63,7 @@ class TransactionsController extends Controller
 				'transactions.created_at',
 				'payment_status',
 				'delivery_status'
-			])->with(['product.category']);
+			])->with(['product.category'])->orderBy('transactions.created_at', 'desc');
 
 			return DataTables::of($data)
 				// Menambahkan kolom nomor urut otomatis (DT_RowIndex)
@@ -230,8 +230,8 @@ class TransactionsController extends Controller
 			// 5. Generate Invoice & Record Transaksi Awal (Status: PENDING/QUEUED)
 			$transaction = Transaction::create([
 				'user_id'               => $user->id,
-				'customer_no'           => $request->target,
-				'zone_id'               => $request->zone_id,
+				'customer_no'           => $request->category_id == '6' ? $request->game_user_id : $request->target,
+				'zone_id'               => $request->game_server_id,
 				'product_id'            => $product->id,
 				'product_name_snapshot' => $product->product_name,
 				'sku_snapshot'          => $product->buyer_sku_code,
