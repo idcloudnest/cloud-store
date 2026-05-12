@@ -131,8 +131,9 @@
 					<div class="modal-body p-4">
 						<div class="mb-4">
 							<label class="form-label fw-bold small text-uppercase">Pilih Kategori Tujuan</label>
-							<select class="form-select" id="assign_category_id" name="category_id" required>
-								<option value="">-- PILIH KATEGORI --</option>
+							{{-- <select class="form-select" id="assign_category_id" name="category_id" required> --}}
+							<select class="form-select" id="assign_category_id" name="category_ids[]" multiple required>
+								{{-- <option value="">-- PILIH KATEGORI --</option> --}}
 								@foreach($parents as $cat) <option value="{{ $cat->id }}">{{ $cat->name }}</option>
 								@endforeach
 							</select>

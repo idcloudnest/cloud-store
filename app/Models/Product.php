@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Product extends Model
@@ -12,6 +13,8 @@ class Product extends Model
 	protected $table = 'products';
 
 	protected $guarded = ['id'];
+
+	protected $appends = ['label'];
 
 	/**
 	 * Accessor untuk membuat atribut baru bernama 'price_rupiah'
@@ -60,6 +63,16 @@ class Product extends Model
 			set: fn ($value) => strtolower($value),
 		);
 	}
+	protected function label(): Attribute
+	{
+		$explode = explode(',', $this->buyer_sku_code);
+		$string = strtolower($explode[0] ?? '-');
+		$result = $string == 'game' ? '' : '';
+
+		return Attribute::make(
+			get: fn () => $string
+		);
+	}
 
 	/**
 	 * Accessor untuk mengambil Icon berdasarkan category.
@@ -98,17 +111,17 @@ class Product extends Model
 			'seller_product_status' => true
 		]);
 	}
-	public function scopeCategories($query)
-	{
-		return $query->select('category')->distinct();
-	}
+	// public function scopeCategories($query)
+	// {
+	// 	return $query->select('category')->distinct();
+	// }
 
 	public function scopeIgnoreCheck($query)
 	{
 		return $query->where('buyer_sku_code', 'NOT LIKE', '%_CEK_%');
 	}
 
-	// RELATION
+	// === RELATION ===
 	public function transactions(): HasMany
 	{
 		return $this->hasMany(Transaction::class);
@@ -121,10 +134,15 @@ class Product extends Model
 	{
 		return $this->belongsTo(Provider::class);
 	}
-	public function category(): BelongsTo
+	// public function category(): BelongsTo
+	// {
+	// 	return $this->belongsTo(Category::class);
+	// }
+	public function categories()
 	{
-		return $this->belongsTo(Category::class);
+		return $this->belongsToMany(Category::class);
 	}
+	// === RELATION ===
 
 
 	public static function getIcons()

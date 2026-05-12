@@ -13,6 +13,7 @@ use SawitLog;
 
 // Models
 use App\Models\Category;
+use App\Models\CategoryProduct;
 use App\Models\Product;
 use SawitDB;
 use App\Sawit\Models\Log as LogModel;
@@ -174,6 +175,8 @@ class CategoryController extends Controller
 		// 2. Jika Request Biasa (Load Halaman)
 		// Ambil list parent untuk dropdown di modal
 		$parents = Category::get();
+		// $parents = Category::whereNull('parent_id')->get();
+		// $parents = Category::whereNotNull('parent_id')->get();
 		return view('admin.product.categories.index', compact('parents'));
 	}
 
@@ -212,11 +215,22 @@ class CategoryController extends Controller
 				[
 					'parent_id' => $request->parent_id,
 					'name' => $request->name,
-					'slug' => Str::slug($request->name) . '-' . Str::random(5),
+					// 'slug' => Str::slug($request->name) . '-' . Str::random(5),
+					'slug' => Str::slug($request->name),
 					'status' => $request->status,
 					'sort_order' => $request->sort_order,
 				]
 			);
+			// $provider = Category::updateOrCreate(
+			// 	['id' => $request->category_id],
+			// 	[
+			// 		'parent_id' => null, // 🔥 paksa null
+			// 		'name' => $request->name,
+			// 		'slug' => Str::slug($request->name),
+			// 		'status' => $request->status,
+			// 		'sort_order' => $request->sort_order,
+			// 	]
+			// );
 
 			DB::commit();
 
@@ -273,19 +287,112 @@ class CategoryController extends Controller
 	public function assignProducts(Request $request)
 	{
 		$request->validate([
-			'category_id' => 'required|exists:categories,id',
+			// 'category_id' => 'required|exists:categories,id',
+			'category_ids' => 'required|array',
+			'category_ids.*' => 'exists:categories,id',
 			'product_ids' => 'required|array',
 			'product_ids.*' => 'exists:products,id',
 		]);
 
-		// Product::where('category_id', $request->category_id)->whereNotIn('id', $request->product_ids)->update(['category_id' => null]);
+		try {
+			DB::beginTransaction();
 
-		// // Update massal semua produk yang dipilih
-		// Product::whereIn('id', $request->product_ids)->update(['category_id' => $request->category_id]);
-		Product::whereIn('id', $request->product_ids)->update(['category_id' => $request->category_id]);
+			// Hapus category yang tidak terpakai
+			CategoryProduct::whereIn('product_id', $request->product_ids)
+				->whereNotIn('category_id', $request->category_ids)
+				->delete();
+
+			$data = [];
+
+			foreach ($request->product_ids as $productId) {
+
+				// Hapus category yang tidak terpakai
+				// CategoryProduct::where('product_id', $productId)->whereNotIn('category_id', $request->category_ids)->delete();
+
+				foreach ($request->category_ids as $categoryId) {
+					$data[] = [
+						'product_id' => $productId,
+						'category_id' => $categoryId,
+						'created_at' => now(),
+						'updated_at' => now(),
+					];
+				}
+			}
+
+			// insert ignore biar gak duplicate error
+			DB::table('category_product')->insertOrIgnore($data);
+
+			// $products = Product::whereIn('id', $request->product_ids)->get();
+
+			// foreach ($products as $product) {
+			// 	// $product->categories()->syncWithoutDetaching([1,2]);
+			// 	$product->categories()->syncWithoutDetaching($request->category_ids);
+			// }
+
+			DB::commit();
+
+			return $this->successResponse(
+				message: count($data) . ' produk berhasil ditambahkan ke kategori!'
+			);
+
+		} catch (\Throwable $e) {
+			DB::rollBack();
+			\Log::error([
+				'service' => 'assignProducts',
+				'error' => [
+					// "type" => "DatabaseError",
+					"message" => $e->getMessage(),
+					"stack" => $e->getFile()
+				],
+			]);
+			return $this->errorResponse('Gagal assign kategori', 500);
+		}
+	}
+	// public function assignProducts(Request $request)
+	// {
+	// 	$request->validate([
+	// 		'category_id' => 'required|exists:categories,id',
+	// 		'product_ids' => 'required|array',
+	// 		'product_ids.*' => 'exists:products,id',
+	// 	]);
+
+	// 	// Product::where('category_id', $request->category_id)->whereNotIn('id', $request->product_ids)->update(['category_id' => null]);
+
+	// 	// // Update massal semua produk yang dipilih
+	// 	// Product::whereIn('id', $request->product_ids)->update(['category_id' => $request->category_id]);
+	// 	// Product::whereIn('id', $request->product_ids)->update(['category_id' => $request->category_id]);
+
+	// 	// Product::whereIn('id', $request->product_ids)
+	// 	// 	->update(['category_id' => $request->category_id]);
+	// 	foreach ($request->product_ids as $productId) {
+	// 		$product = Product::find($productId);
+	// 		$product->categories()->syncWithoutDetaching([$request->category_id]);
+	// 	}
+
+	// 	return $this->successResponse(
+	// 		message: count($request->product_ids) . ' Produk berhasil dipindahkan ke kategori ini!'
+	// 	);
+	// }
+
+	public function categoryByParent(Request $request)
+	{
+		$parent = Category::where('parent_id', $request->parent_id)->get(['id', 'name']);
+		$parentId = $parent->pluck('id');
+
+		if (count($parent)) {
+			$category = CategoryProduct::select('product_id')->whereIn('category_id', $parentId)->distinct()->pluck('product_id');
+
+			$brands = Product::select('brand_id')->whereIn('id', $category)->with('brand:id,name')->groupBy('brand_id')->get()->map(fn($row) => $row->brand);
+
+			return $this->successResponse(
+				['categories' => $parent, 'brands' => $brands],
+				'Ok.'
+			);
+		}
 
 		return $this->successResponse(
-			message: count($request->product_ids) . ' Produk berhasil dipindahkan ke kategori ini!'
+			message: 'Ok.',
+			code: 204
 		);
 	}
 }

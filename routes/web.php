@@ -158,6 +158,7 @@ Route::middleware(['auth', 'is_active'])->group(function () {
 				Route::post('destroy', 'destroy')->name('destroy');
 				Route::post('assign', 'assignProducts')->name('assign');
 				Route::get('datatable/{id}/products', 'getProductsByCategory')->name('products');
+				Route::get('category-by-parent', 'categoryByParent')->name('category-by-parent');
 			});
 
 			Route::controller(\App\Http\Controllers\Admin\Product\BrandsController::class)

@@ -24,17 +24,17 @@ class StoreTransactionRequest extends FormRequest
 	public function rules(): array
 	{
 		return [
-			'category_id' => ['required', 'string'],
+			'category' => ['required', 'string'],
 
 			// Wajib hanya jika category = games
-			'user_id' => ['required_if:category_id,games', 'string'],
-			'server_id' => ['required_if:category_id,games', 'string'],
+			'game_user_id' => ['required_if:category,games', 'string'],
+			'game_server_id' => ['required_if:category,games', 'string'],
 
 			'product_code' => ['required', 'string', 'max:50'],
 
 			// Wajib jika BUKAN games
 			'target' => [
-				'exclude_if:category_id,6',
+				'exclude_if:category,games',
 				// 'required_unless:category_id,games',
 				'required',
 				'string',
@@ -73,9 +73,9 @@ class StoreTransactionRequest extends FormRequest
 	public function attributes(): array
 	{
 		return [
-			'category_id'  => 'Kategori',
-			'user_id'      => 'User ID',
-			'server_id'    => 'Server ID',
+			'category'  => 'Kategori',
+			'game_user_id'      => 'User ID',
+			'game_server_id'    => 'Server ID',
 			'product_code' => 'Produk',
 			'target'       => 'Nomor Tujuan',
 		];

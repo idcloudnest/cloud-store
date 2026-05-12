@@ -20,6 +20,7 @@ use App\Jobs\WriteSawitLogJob;
 
 // Models
 use App\Models\Product;
+use App\Models\CategoryProduct;
 use App\Sawit\Models\Log as LogModel;
 
 class ProductsController extends Controller
@@ -105,7 +106,7 @@ class ProductsController extends Controller
 		// return "Ok";
 
 		if ($request->ajax()) {
-			$data = Product::with('brand','category:id,name');
+			$data = Product::with('brand','categories:id,name');
 
 			return DataTables::of($data)
 				// Menambahkan kolom nomor urut otomatis (DT_RowIndex)
@@ -234,10 +235,23 @@ class ProductsController extends Controller
 					// Return HTML Badge dengan sedikit margin agar rapi
 					return '<span class="badge bg-'.$color.' fw-normal px-2 py-1">'.strtoupper($status).'</span>';
 				})
+				->addColumn('category', function ($row) {
+					if ($row->categories->isEmpty()) {
+						return '-';
+					}
+
+					return $row->categories->map(function ($cat) {
+						$color = ['info', 'primary', 'warning', 'danger'];
+						$color = $color[array_rand($color)];
+						return "<span class='badge bg-{$color} bg-opacity-10 text-{$color}' style='font-size: 0.7rem;'>"
+							. e($cat->name) .
+						'</span>';
+					})->implode(' ');
+				})
 				// ->addColumn('code_sort', fn($row) => (int) preg_replace('/[^0-9]/', '', $row->buyer_sku_code))
 
 				// Wajib memberitahu kolom mana yang mengandung HTML agar tidak di-escape
-				->rawColumns(['action', 'status', 'harga', 'price', 'selling_price', 'delivery_status'])
+				->rawColumns(['action', 'status', 'harga', 'price', 'selling_price', 'delivery_status', 'category'])
 
 				// Finalisasi
 				->make(true);
@@ -332,14 +346,29 @@ class ProductsController extends Controller
 	{
 		// $request->validate(['category' => 'required']);
 
-		$products = Product::active()
-			->when($request->mode === 'pascabayar', fn($q) => $q->where('type', 'pascabayar'))
+		$productId = CategoryProduct::where('category_id', $request->category_id)->pluck('product_id');
+		$products = Product::select('id', 'brand_id', 'buyer_sku_code', 'product_name', 'price', 'selling_price', 'status')
+		// $products = Product::select('*')
+			->with('brand:id,name')
+			// ->with('category_product:id,name')
+			->active()
+			->whereIn('id', $productId)
+			// ->when($request->mode === 'pascabayar', fn($q) => $q->where('type', 'pascabayar'))
 			->when($request->brand, fn($q) => $q->where('brand_id', $request->brand))
-			->when(!$request->brand, fn($q) => $q->where('category_id', $request->category))
+			// ->when(!$request->brand, fn($q) => $q->where('category_id', $request->category))
+
+			->when($request->categories, fn($q) => $q->whereHas('categories', fn($q) => $q->where('category_id', $request->categories)))
+			->when($request->brands, fn($q) => $q->where('brand_id', $request->brands))
+
 			->ignoreCheck()
 			->orderBy('price', 'asc')
 			->orderBy('product_name', 'asc')
-			->get(['id','buyer_sku_code', 'product_name', 'price', 'selling_price']);
+			->paginate(20);
+			// ->get(['id','buyer_sku_code', 'product_name', 'price', 'selling_price']);
+
+		// $products->getCollection()->transform(function ($item) {
+		// 	return $item->append('label');
+		// });
 
 		return $this->successResponse($products, 'Ok.');
 	}
@@ -348,27 +377,46 @@ class ProductsController extends Controller
 	{
 		$search = $request->search;
 
-		$products = Product::where(DB::raw("LOWER(product_name)"), 'LIKE', "%$search%")
+		$products = Product::with('categories')
+			->where(DB::raw("LOWER(product_name)"), 'LIKE', "%$search%")
 			->orWhere(DB::raw("LOWER(buyer_sku_code)"), 'LIKE', "%$search%")
-			->orderBy('category_id', 'asc')
-			->limit(20) // Batasi hasil agar ringan
 			->get();
+		// $products = Product::where(DB::raw("LOWER(product_name)"), 'LIKE', "%$search%")
+		// 	->orWhere(DB::raw("LOWER(buyer_sku_code)"), 'LIKE', "%$search%")
+		// 	->orderBy('category_id', 'asc')
+		// 	->limit(20) // Batasi hasil agar ringan
+		// 	->get();
 
 		$response = [];
 		foreach($products as $product){
-			// $response[] = [
-			// 	"id" => $product->id,
-			// 	"text" => $product->product_name . " (" . $product->buyer_sku_code . ")"
-			// ];
-
-			$currentCategory = $product->category ? $product->category->name : 'Tanpa Kategori';
+			$categoryNames = $product->categories
+				->pluck('name')
+				->toArray();
 
 			$response[] = [
 				"id" => $product->id,
-				"text" => $product->product_name, // Text utama
+				"text" => $product->product_name,
 				"sku" => $product->buyer_sku_code,
-				"category_text" => $currentCategory // Info tambahan untuk UI
+				"category_text" => count($categoryNames)
+					? implode(', ', $categoryNames)
+					: 'Tanpa Kategori'
 			];
+
+			// $currentCategory = $product->categories ? $product->categories->name : 'Tanpa Kategori';
+			// // $currentCategory = $product->category ? $product->category->name : 'Tanpa Kategori';
+
+			// $response[] = [
+			// 	"id" => $product->id,
+			// 	"text" => $product->product_name,
+			// 	"sku" => $product->buyer_sku_code,
+			// 	"category_text" => $currentCategory
+			// ];
+			// $response[] = [
+			// 	"id" => $product->id,
+			// 	"text" => $product->product_name, // Text utama
+			// 	"sku" => $product->buyer_sku_code,
+			// 	"category_text" => $currentCategory // Info tambahan untuk UI
+			// ];
 		}
 
 		return $this->successResponse($response, 'Ok.');

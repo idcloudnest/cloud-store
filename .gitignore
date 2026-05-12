@@ -28,3 +28,4 @@ backup.*
 sawitdb
 *.pem
 id_rsa
+*.bak

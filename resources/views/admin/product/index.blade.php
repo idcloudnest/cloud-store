@@ -612,7 +612,7 @@
 					},
 					{data: 'brand.name', name: 'brand.name'},
 					{data: 'price', name: 'price'},
-					{data: 'category.name', name: 'category.name'},
+					{data: 'category', name: 'categories.name'},
 					{data: 'status', name: 'status'},
 					{data: 'updated_at', name: 'updated_at'},
 					{

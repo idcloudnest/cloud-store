@@ -146,8 +146,8 @@
 
 							<div class="col-6">
 								<label class="small text-muted fw-bold text-uppercase">Tujuan / ID</label>
+								</br><small class="fw-bold text-primary" id="modal-user"></small>
 								<div class="fw-bold text-dark" id="modal-customer-no"></div>
-								<small class="text-muted" id="modal-user"></small>
 							</div>
 							<div class="col-6 text-end">
 								<label class="small text-muted fw-bold text-uppercase">Payment Status</label>
@@ -288,12 +288,13 @@
 				ajax: "{{ route('admin.transactions.index') }}", // URL ke Controller tadi
 				columns: [
 					{data: 'invoice', name: 'invoice'},
-					{data: 'customer_no', name: 'customer_no'},
+					// {data: 'customer_no', name: 'customer_no'},
+					{data: 'target', name: 'target'},
 					{data: 'product_name_snapshot', name: 'product_name_snapshot'},
 					{
 						data: 'category',
-						name: 'product.category.name',
-						render: (data, type, row, meta) => data?.toUpperCase(),
+						name: 'product.categories.name',
+						// render: (data, type, row, meta) => data?.toUpperCase(),
 					},
 					{data: 'total_rupiah', name: 'total_amount'},
 					{
@@ -377,6 +378,7 @@
 			$('#detailModal').modal('show');
 
 			const {status, data: {data}, data: {meta}} = await getRequest(url);
+			console.log(data);
 
 			if (status !== 200) {
 				$('#modal-loader').addClass('d-none');
@@ -401,8 +403,9 @@
 			$('#modal-category').text(catName);
 
 			// Customer info
-			$('#modal-customer-no').text(data.customer_no);
-			let userName = data.user ? data.user.name : 'Guest / Terhapus';
+			$('#modal-customer-no').text(data.customer_no + (data?.sku_snapshot.toLowerCase().includes('game') ? ` (${data.zone_id})` : ''));
+			// let userName = data.user ? data.user.name : 'Guest / Terhapus';
+			let userName = data.customer_name ?? data?.user?.name ?? 'Guest / Terhapus';
 			$('#modal-user').text(userName);
 
 			// Status Badges

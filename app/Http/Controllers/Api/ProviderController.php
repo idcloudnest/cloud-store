@@ -139,8 +139,9 @@ class ProviderController extends Controller
 	public function checkUsername(Request $request)
 	{
 		$category = $request->category;
-		$service = ProviderFactory::make($category == 'games' ? 'vipayment' : 'digiflazz');
-		$response = $category == 'games'
+		$isGame = $category == 'games';
+		$service = ProviderFactory::make($isGame ? 'vipayment' : 'digiflazz');
+		$response = $isGame
 			? $service->checkUsername($request->code_game, $request->user_id, $request->server_id)
 			: $service->checkPlnId($request->target);
 

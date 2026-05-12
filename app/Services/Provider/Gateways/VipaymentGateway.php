@@ -81,7 +81,7 @@ class VipaymentGateway extends BaseProvider implements ProviderInterface
 		if ($filterStatus)
 			$payload['filter_status'] = $filterStatus;
 
-		\Log::debug(json_encode($payload, JSON_PRETTY_PRINT));
+		// \Log::debug(json_encode($payload, JSON_PRETTY_PRINT));
 		return $this->post('/game-feature', $payload, false);
 	}
 	public function orderGame(string $service, string $dataNo, ?string $dataZone = null): array

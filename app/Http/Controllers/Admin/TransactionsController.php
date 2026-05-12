@@ -39,7 +39,7 @@ class TransactionsController extends Controller
 
 	public function show($id)
 	{
-		$transaction = Transaction::with('user:id,name')->with(['product' => fn($q) => $q->select('id','product_name','category_id')->with('category:id,name')])
+		$transaction = Transaction::with('user:id,name')->with(['product' => fn($q) => $q->select('id','product_name','category_id')->with('categories:id,name')])
 		->where('invoice', $id)
 		->first();
 		// ->findOrFail($id);
@@ -62,8 +62,10 @@ class TransactionsController extends Controller
 				'total_amount',
 				'transactions.created_at',
 				'payment_status',
-				'delivery_status'
-			])->with(['product.category'])->orderBy('transactions.created_at', 'desc');
+				'delivery_status',
+				'zone_id'
+			// ])->with(['product.category'])->orderBy('transactions.created_at', 'desc');
+			])->with(['product.categories:id,name'])->orderBy('transactions.created_at', 'desc');
 
 			return DataTables::of($data)
 				// Menambahkan kolom nomor urut otomatis (DT_RowIndex)
@@ -160,7 +162,24 @@ class TransactionsController extends Controller
 					// Return HTML Badge dengan sedikit margin agar rapi
 					return '<span class="badge bg-'.$color.' fw-normal px-2 py-1">'.strtoupper($status).'</span>';
 				})
-				->addColumn('category', fn ($row) => $row?->product?->category?->name ?? '-')
+				->addColumn('target', function($row){
+					return strtolower(explode(',', $row->product->buyer_sku_code)[0] ?? '') == 'game' ? "{$row->customer_no} ({$row->zone_id})" : $row->customer_no;
+				})
+				// ->addColumn('category', fn ($row) => $row?->product?->category?->name ?? '-')
+				// ->addColumn('category', fn ($row) => $row->product?->categories?->pluck('name')->implode(', ') ?? '-')
+				->addColumn('category', function ($row) {
+					if (!$row->product || $row->product->categories->isEmpty()) {
+						return '-';
+					}
+
+					return $row->product->categories->map(function ($cat) {
+						$color = ['info', 'primary', 'warning', 'danger'];
+						$color = $color[array_rand($color)];
+						return "<span class='badge bg-{$color} bg-opacity-10 text-{$color}' style='font-size: 0.7rem;'>"
+							. e($cat->name) .
+						'</span>';
+					})->implode(' ');
+				})
 
 				// Wajib memberitahu kolom mana yang mengandung HTML agar tidak di-escape
 				->rawColumns(['action', 'payment_status', 'delivery_status', 'category'])
@@ -194,7 +213,7 @@ class TransactionsController extends Controller
 	{
 		$users = User::orderBy('name', 'asc')->get();
 
-		$categories = Category::all();
+		$categories = Category::whereNull('parent_id')->get();
 		return view('admin.transactions.manual', ['categories' => $categories, 'users' => $users]);
 	}
 
@@ -215,7 +234,7 @@ class TransactionsController extends Controller
 			$buyPrice = $product->price;
 			$sellingPrice = $request->custom_price ?? $product->selling_price ?? $buyPrice;
 
-			if ($user->role === 'admin')
+			if ($user && $user->role === 'admin')
 				$sellingPrice = $buyPrice;
 
 			$availableFunds = $user->balance + ($user->credit_limit ?? 0);
@@ -230,7 +249,8 @@ class TransactionsController extends Controller
 			// 5. Generate Invoice & Record Transaksi Awal (Status: PENDING/QUEUED)
 			$transaction = Transaction::create([
 				'user_id'               => $user->id,
-				'customer_no'           => $request->category_id == '6' ? $request->game_user_id : $request->target,
+				'customer_name'         => $request->customer_name ?? null,
+				'customer_no'           => $request->category == 'games' ? $request->game_user_id : $request->target,
 				'zone_id'               => $request->game_server_id,
 				'product_id'            => $product->id,
 				'product_name_snapshot' => $product->product_name,
