@@ -18,56 +18,60 @@ class CategorySeeder extends Seeder
 	public function run(): void
 	{
 		Category::create([
-			'name' => 'Prabayar',
-			'slug' => Str::slug('Prabayar') . '-' . Str::random(5),
+			'name' => 'Games',
+			'slug' => Str::slug('games'),
 			'sort_order' => 0,
 		]);
 		Category::create([
-			'name' => 'Pascabayar',
-			'slug' => Str::slug('Pascabayar') . '-' . Str::random(5),
-			'sort_order' => 0,
-		]);
-		Category::create([
-			'parent_id' => 1,
 			'name' => 'Operator Seluler',
-			'slug' => Str::slug('Operator Seluler') . '-' . Str::random(5),
-			'sort_order' => 1,
+			'slug' => Str::slug('Operator Seluler'),
+			'sort_order' => 0,
+		]);
+		Category::create([
+			'name' => 'Token PLN',
+			'slug' => Str::slug('Token PLN'),
+			'sort_order' => 0,
+		]);
+		Category::create([
+			'name' => 'E-Wallet',
+			'slug' => Str::slug('E-Wallet'),
+			'sort_order' => 0,
 		]);
 		Category::create([
 			'parent_id' => 1,
-			'name' => 'Token Listrik',
-			'slug' => Str::slug('Token Listrik') . '-' . Str::random(5),
-			'sort_order' => 2,
+			'name' => 'Diamonds',
+			'slug' => Str::slug('Diamonds'),
+			'sort_order' => 0,
+		]);
+		Category::create([
+			'parent_id' => 1,
+			'name' => 'Membership',
+			'slug' => Str::slug('Membership'),
+			'sort_order' => 0,
+		]);
+		Category::create([
+			'parent_id' => 1,
+			'name' => 'Weekly Diamond',
+			'slug' => Str::slug('Weekly Diamond'),
+			'sort_order' => 0,
 		]);
 		Category::create([
 			'parent_id' => 2,
-			'name' => 'Tagihan (PPOB)',
-			'slug' => Str::slug('Tagihan (PPOB)') . '-' . Str::random(5),
-			'sort_order' => 2,
+			'name' => 'Pulsa',
+			'slug' => Str::slug('Pulsa'),
+			'sort_order' => 0,
 		]);
 		Category::create([
-			'parent_id' => 1,
-			'name' => 'Games',
-			'slug' => Str::slug('Games') . '-' . Str::random(5),
-			'sort_order' => 3,
+			'parent_id' => 2,
+			'name' => 'Data',
+			'slug' => Str::slug('Data'),
+			'sort_order' => 0,
 		]);
 		Category::create([
-			'parent_id' => 1,
-			'name' => 'E-Wallet',
-			'slug' => Str::slug('E-Wallet') . '-' . Str::random(5),
-			'sort_order' => 4,
-		]);
-		Category::create([
-			'parent_id' => 1,
-			'name' => 'Voucher',
-			'slug' => Str::slug('Voucher') . '-' . Str::random(5),
-			'sort_order' => 5,
-		]);
-		Category::create([
-			'parent_id' => 1,
-			'name' => 'Streaming',
-			'slug' => Str::slug('Streaming') . '-' . Str::random(5),
-			'sort_order' => 6,
+			'parent_id' => 2,
+			'name' => 'Masa Aktif',
+			'slug' => Str::slug('Masa Aktif'),
+			'sort_order' => 0,
 		]);
 	}
 }

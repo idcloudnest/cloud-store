@@ -29,3 +29,6 @@ sawitdb
 *.pem
 id_rsa
 *.bak
+.user.ini
+index.html
+*blade copy.*

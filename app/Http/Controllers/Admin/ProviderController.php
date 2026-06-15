@@ -85,6 +85,7 @@ class ProviderController extends Controller
 			return $this->successResponse([
 				'balance' => $provider->balance_rupiah,
 				'last_update' => $provider->last_update,
+				'last_update_iso' => $provider->last_update_iso,
 			], message: 'Status provider berhasil diubah.');
 
 		} catch (\Exception $e) {

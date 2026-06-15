@@ -55,7 +55,7 @@
 				<div class="card border-0 shadow-sm p-3">
 					<div class="d-flex align-items-center">
 						<div class="bg-primary bg-opacity-10 p-3 rounded me-3 text-primary"><i class="fa-solid fa-box fa-xl"></i></div>
-						<div><span class="text-muted small text-uppercase fw-bold">Total SKU</span><h4 class="fw-bold mb-0">1,520</h4></div>
+						<div><span class="text-muted small text-uppercase fw-bold">Total SKU</span><h4 class="fw-bold mb-0">{{ formatRibuan($totalSku) }}</h4></div>
 					</div>
 				</div>
 			</div>
@@ -63,7 +63,7 @@
 				<div class="card border-0 shadow-sm p-3">
 					<div class="d-flex align-items-center">
 						<div class="bg-success bg-opacity-10 p-3 rounded me-3 text-success"><i class="fa-solid fa-check-circle fa-xl"></i></div>
-						<div><span class="text-muted small text-uppercase fw-bold">Stok Ready</span><h4 class="fw-bold mb-0">1,480</h4></div>
+						<div><span class="text-muted small text-uppercase fw-bold">SKU Ready</span><h4 class="fw-bold mb-0">{{ formatRibuan($totalSkuAktif) }}</h4></div>
 					</div>
 				</div>
 			</div>
@@ -71,7 +71,7 @@
 				<div class="card border-0 shadow-sm p-3">
 					<div class="d-flex align-items-center">
 						<div class="bg-danger bg-opacity-10 p-3 rounded me-3 text-danger"><i class="fa-solid fa-ban fa-xl"></i></div>
-						<div><span class="text-muted small text-uppercase fw-bold">Stok Habis</span><h4 class="fw-bold mb-0">35</h4></div>
+						<div><span class="text-muted small text-uppercase fw-bold">SKU Nonaktif</span><h4 class="fw-bold mb-0">{{ formatRibuan($totalSkuNonAktif) }}</h4></div>
 					</div>
 				</div>
 			</div>

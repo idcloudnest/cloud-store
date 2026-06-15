@@ -8,6 +8,14 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::as('api.')->group(function () {
+	Route::controller(App\Http\Controllers\Api\CNS\ProductController::class)
+	->as('cns.')->prefix('cns')->group(function () {
+		Route::get('main-category', 'mainCategory');
+		Route::get('sub-category', 'subCategory');
+		Route::get('product-list', 'productList');
+		Route::get('brand-list', 'brandList');
+	});
+
 	Route::controller(App\Http\Controllers\Api\DigiflazzController::class)
 	->as('digiflazz.')->prefix('digiflazz')->group(function () {
 		Route::get('test', 'test');

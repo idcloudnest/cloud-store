@@ -257,7 +257,10 @@ class ProductsController extends Controller
 				->make(true);
 		}
 
-		return view('admin.product.index');
+		$totalSku = Product::count('id');
+		$totalSkuAktif = Product::where('status', 1)->count('id');
+		$totalSkuNonAktif = Product::where('status', 0)->count('id');
+		return view('admin.product.index', compact('totalSku', 'totalSkuAktif', 'totalSkuNonAktif'));
 	}
 
 	public function form(Request $request)
@@ -265,7 +268,7 @@ class ProductsController extends Controller
 		try {
 			$id = $request->product_id;
 			$title = $id ? 'Edit Produk' : 'Tambah Produk';
-			$product = Product::with('brand','category','provider')->find($request->product_id);
+			$product = Product::with('brand','categories:id,name','provider')->find($request->product_id);
 
 			$content = view('admin.product.form', compact('product','title'))->render();
 			return $this->successResponse(['content' => $content], 'Ok');

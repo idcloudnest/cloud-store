@@ -34,9 +34,9 @@ class HomeController extends Controller
 
 		// [CONTENT IDEAS] Data Dummy untuk Banner Slider
 		$banners = [
-			['image' => 'https://via.placeholder.com/1200x400/4f46e5/ffffff?text=Promo+Spesial+Awal+Tahun', 'alt' => 'Promo 1'],
-			['image' => 'https://via.placeholder.com/1200x400/0ea5e9/ffffff?text=Diskon+Mobile+Legends+50%', 'alt' => 'Promo 2'],
-			['image' => 'https://via.placeholder.com/1200x400/f59e0b/ffffff?text=Pulsa+Murah+Tanpa+Admin', 'alt' => 'Promo 3'],
+			// ['image' => 'https://via.placeholder.com/1200x400/4f46e5/ffffff?text=Promo+Spesial+Awal+Tahun', 'alt' => 'Promo 1'],
+			// ['image' => 'https://via.placeholder.com/1200x400/0ea5e9/ffffff?text=Diskon+Mobile+Legends+50%', 'alt' => 'Promo 2'],
+			// ['image' => 'https://via.placeholder.com/1200x400/f59e0b/ffffff?text=Pulsa+Murah+Tanpa+Admin', 'alt' => 'Promo 3'],
 		];
 
 		// [CONTENT IDEAS] Data Dummy Transaksi Terakhir (Running Text)
@@ -45,6 +45,7 @@ class HomeController extends Controller
 			'0857****1122 sukses membeli Pulsa Telkomsel 50k',
 			'0813****7766 sukses membeli Token PLN 100k',
 		];
+		// return view('pages.home', compact('brands', 'categories', 'banners', 'lastTransactions'));
 		return view('pages.home', compact('brands', 'categories', 'banners', 'lastTransactions'));
 	}
 

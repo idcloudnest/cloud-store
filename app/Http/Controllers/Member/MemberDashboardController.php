@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Member;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\Category;
 
 class MemberDashboardController extends Controller
 {
@@ -24,6 +26,11 @@ class MemberDashboardController extends Controller
 								 ->where('payment_status', 'paid')
 								 ->sum('amount');
 
-		return view('member.dashboard', compact('user', 'recentTransactions', 'expenseThisMonth'));
+		// return view('member.dashboard', compact('user', 'recentTransactions', 'expenseThisMonth'));
+
+		$users = User::orderBy('name', 'asc')->get();
+
+		$categories = Category::whereNull('parent_id')->get();
+		return view('member.transactions.index', compact('user', 'recentTransactions', 'expenseThisMonth', 'categories'));
 	}
 }

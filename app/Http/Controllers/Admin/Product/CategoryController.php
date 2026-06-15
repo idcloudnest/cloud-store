@@ -376,23 +376,74 @@ class CategoryController extends Controller
 
 	public function categoryByParent(Request $request)
 	{
-		$parent = Category::where('parent_id', $request->parent_id)->get(['id', 'name']);
-		$parentId = $parent->pluck('id');
+		$parentId = $request->parent_id;
 
-		if (count($parent)) {
-			$category = CategoryProduct::select('product_id')->whereIn('category_id', $parentId)->distinct()->pluck('product_id');
+		$parent = Category::where('id', $parentId)
+			->whereNull('parent_id')
+			->first(['id', 'name']);
 
-			$brands = Product::select('brand_id')->whereIn('id', $category)->with('brand:id,name')->groupBy('brand_id')->get()->map(fn($row) => $row->brand);
+		$categories = Category::where('parent_id', $parentId)
+			->get(['id', 'name']);
 
-			return $this->successResponse(
-				['categories' => $parent, 'brands' => $brands],
-				'Ok.'
-			);
-		}
+		// $categoryIds = $categories->pluck('id')->merge($parent->pluck('id'))
+		// 	->unique()
+		// 	->values();
+		// if ($categories->isEmpty()) {
+		// 	return $this->successResponse(
+		// 		[
+		// 			'parent' => $parent,
+		// 			'categories' => [],
+		// 			'brands' => [],
+		// 		],
+		// 		'Ok.'
+		// 	);
+		// }
+		$categoryIds = $categories->pluck('id')->merge($parent ? [$parent->id] : []);
+
+		$productIds = CategoryProduct::whereIn('category_id', $categoryIds)
+			->distinct()
+			->pluck('product_id');
+
+		$brands = Product::whereIn('id', $productIds)
+			->where('status', 1)
+			->whereNotNull('brand_id')
+			->with('brand:id,name')
+			->select('brand_id')
+			->groupBy('brand_id')
+			->get()
+			->pluck('brand')
+			->filter()
+			->values();
 
 		return $this->successResponse(
-			message: 'Ok.',
-			code: 204
+			[
+				'parent' => $parent,
+				'categories' => $categories,
+				'brands' => $brands,
+			],
+			'Ok.'
 		);
 	}
+
+	// public function categoryByParent(Request $request)
+	// {
+	// 	$parent = Category::where('parent_id', $request->parent_id)->get(['id', 'name']);
+	// 	$parentId = $parent->pluck('id');
+
+	// 	if (count($parent)) {
+	// 		$category = CategoryProduct::select('product_id')->whereIn('category_id', $parentId)->distinct()->pluck('product_id');
+
+	// 		$brands = Product::select('brand_id')->whereIn('id', $category)->with('brand:id,name')->groupBy('brand_id')->get()->map(fn($row) => $row->brand);
+
+	// 		return $this->successResponse(
+	// 			['categories' => $parent, 'brands' => $brands],
+	// 			'Ok.'
+	// 		);
+	// 	}
+
+	// 	return $this->successResponse(
+	// 		message: 'Ok.',
+	// 		code: 204
+	// 	);
+	// }
 }

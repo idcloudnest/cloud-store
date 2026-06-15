@@ -702,25 +702,35 @@
 			$categories.empty();
 			$brands.empty()
 
+			console.log(parentId);
+
 			$.ajax({
 				url: "{{ route('admin.products.categories.category-by-parent') }}",
 				data: { parent_id: parentId},
 				success: function(r) {
+					console.log(r);
+
 					if (!r) return container.addClass('d-none');
 
 					const { data: { categories, brands } } = r
 
 					container.removeClass('d-none');
 
-					$categories.append(`<div class="categories-chip active" data-categories="all">SEMUA</div>`);
+					const categoriesIsOne = categories.length == 1
+
+					if (!categoriesIsOne) $categories.append(`<div class="categories-chip active" data-categories="all">SEMUA</div>`);
+
 					categories.forEach(c => {
-						$categories.append(`<div class="categories-chip" data-categories="${c.name.toLowerCase()}" data-categories-id="${c.id}">${c.name}</div>`);
+						$categories.append(`<div class="categories-chip ${categoriesIsOne ? 'active' : ''}" data-categories="${c.name.toLowerCase()}" data-categories-id="${c.id}">${c.name}</div>`);
 					});
 
-					$brands.append(`<div class="brands-chip active" data-brands="all">SEMUA</div>`);
-					brands.forEach(b => {
-						$brands.append(`<div class="brands-chip" data-brands="${b.name.toLowerCase()}" data-brands-id="${b.id}">${b.name}</div>`);
-					});
+					if (brands.length > 0) {
+						if (brands.length > 1) $brands.append(`<div class="brands-chip active" data-brands="all">SEMUA</div>`);
+
+						brands.forEach(b => {
+							$brands.append(`<div class="brands-chip ${brands.length == 1 ? 'active' : ''}" data-brands="${b.name.toLowerCase()}" data-brands-id="${b.id}">${b.name}</div>`);
+						});
+					}
 
 					$('.categories-chip').click(function () {
 						let val = $(this).data('categories');

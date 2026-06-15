@@ -67,7 +67,8 @@
 					</li>
 					<li class="list-group-item px-0 d-flex justify-content-between border-0 pt-1">
 						<span class="text-muted">Updated</span>
-						<span class="text-end" id="last-update-{{ $provider->id }}">{{ $provider->updated_at->diffForHumans() }}</span>
+						{{-- <span class="text-end updated-at" data-updated-at="{{ $provider->updated_at->toIso8601String() }}" id="last-update-{{ $provider->id }}">{{ $provider->updated_at->diffForHumans() }}</span> --}}
+						<span class="text-end updated-at" data-updated-at="{{ $provider->updated_at->toIso8601String() }}" id="last-update-{{ $provider->id }}"></span>
 					</li>
 				</ul>
 			</div>
@@ -163,8 +164,31 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+{{-- <script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/id.js"></script> --}}
+<script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/en.js"></script>
+
+<script>
+	dayjs.extend(dayjs_plugin_relativeTime);
+	dayjs.locale('id');
+</script>
+
 <script>
 	const modal = new bootstrap.Modal(document.getElementById('providerModal'));
+
+	$(() => {
+		updatedAt()
+		setInterval(() => { updatedAt() }, 1000);
+	})
+
+	function updatedAt() {
+		$(".updated-at").each(function(i, v) {
+			const updatedAt = $(this).data("updated-at");
+
+			$(this).text(dayjs(updatedAt).fromNow());
+		})
+	}
 
 	function openModal(type) {
 		if(type === 'create') {
@@ -281,7 +305,7 @@
 					title: 'Saldo: ' + res.data.balance, showConfirmButton: false, timer: 3000
 				});
 
-				lastUpdate(id, res.data.last_update)
+				lastUpdate(id, res.data.last_update_iso)
 			},
 			error: function(err) {
 				Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'Gagal terhubung ke provider' });
@@ -304,15 +328,14 @@
 					title: res.meta.message, showConfirmButton: false, timer: 2000
 				})
 
-				lastUpdate(id, res.data.last_update)
+				lastUpdate(id, res.data.last_update_iso)
 			}
 		});
 	}
 
 	function lastUpdate(id,str) {
-		console.log(str);
-
-		$(`#last-update-${id}`).text(str)
+		$(`#last-update-${id}`).data('updated-at', str)
+		updatedAt()
 	}
 </script>
 @endpush

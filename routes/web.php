@@ -97,20 +97,81 @@ Route::controller(App\Http\Controllers\Pages\OrderController::class)
 });
 // Route::middleware('role:member,reseller')->name('member.')->group(function () {
 
-Route::as('member.')
-->group(function () {
-	Route::controller(\App\Http\Controllers\Member\MemberDashboardController::class)
-	->group(function () {
-		Route::get('dashboard', 'index')->name('dashboard');
-		Route::get('riwayat', 'index')->name('riwayat');
-	});
+// Route::as('member.')
+// ->group(function () {
+// 	Route::controller(\App\Http\Controllers\Member\MemberDashboardController::class)
+// 	->group(function () {
+// 		Route::get('dashboard', 'index')->name('dashboard');
+// 		Route::get('riwayat', 'index')->name('riwayat');
+// 	});
 
-	Route::controller(\App\Http\Controllers\Member\TransactionController::class)
-	->group(function () {
-		// Tambahkan di dalam group middleware auth
-		Route::get('order/{category}', 'orderForm')->name('transaction.order');
-	});
-});
+// 	Route::controller(\App\Http\Controllers\Member\TransactionController::class)
+// 	->group(function () {
+// 		// Tambahkan di dalam group middleware auth
+// 		Route::get('order/{category}', 'orderForm')->name('transaction.order');
+// 	});
+
+// 	Route::controller(\App\Http\Controllers\Admin\TransactionsController::class)
+// 	->as('transactions.')
+// 	->prefix('transactions')
+// 	->group(function () {
+// 		Route::get('/', 'index')->name('index');
+// 		Route::get('form', 'form')->name('form');
+// 		Route::post('store', 'store')->name('store');
+// 		// Route::post('resend', 'resendJob')->name('resend');
+// 		Route::get('detail/{transaction}', 'show')->name('show');
+// 		Route::post('inquiry', 'pascaBayar')->name('inquiry');
+// 	});
+
+// 	Route::prefix('products')
+// 	->as('products.')
+// 	->group(function () {
+// 		Route::controller(\App\Http\Controllers\Admin\Product\CategoryController::class)
+// 		->prefix('categories')
+// 		->as('categories.')
+// 		->group(function () {
+// 			// Route::get('/', 'index')->name('index');
+// 			// Route::get('data', 'data')->name('data');
+// 			// Route::get('show/{id}', 'show')->name('show');
+// 			// Route::post('store', 'store')->name('store');
+// 			// Route::post('update', 'update')->name('update');
+// 			// Route::post('destroy', 'destroy')->name('destroy');
+// 			// Route::post('assign', 'assignProducts')->name('assign');
+// 			// Route::get('datatable/{id}/products', 'getProductsByCategory')->name('products');
+// 			Route::get('category-by-parent', 'categoryByParent')->name('category-by-parent');
+// 		});
+
+// 		// Route::controller(\App\Http\Controllers\Admin\Product\BrandsController::class)
+// 		// ->prefix('brands')
+// 		// ->as('brands.')
+// 		// ->group(function () {
+// 		// 	Route::get('/', 'index')->name('index');
+// 		// 	Route::get('data', 'data')->name('data');
+// 		// 	Route::post('form', 'form')->name('form');
+// 		// 	Route::post('store', 'store')->name('store');
+// 		// });
+
+// 		Route::controller(\App\Http\Controllers\Admin\Product\ProductsController::class)
+// 		->group(function () {
+// 			Route::prefix('items')
+// 			->as('items.')
+// 			->group(function () {
+// 				// Route::get('/', 'index')->name('index');
+// 				// Route::post('form', 'form')->name('form');
+// 				// Route::post('store', 'store')->name('store');
+// 				Route::post('get-products-by-category', 'getProductsByCategory')->name('getProductsByCategory');
+// 				// Route::post('get-brands-by-category', 'getBrandsByCategory')->name('get-brands-by-category');
+// 				// Route::get('search', 'search')->name('search');
+// 			});
+
+// 			// Route::prefix('categories')
+// 			// ->as('categories.')
+// 			// ->group(function () {
+// 			// 	Route::get('/', 'index')->name('index');
+// 			// });
+// 		});
+// 	});
+// });
 
 Route::middleware(['auth', 'is_active'])->group(function () {
 	Route::prefix('admin')->as('admin.')

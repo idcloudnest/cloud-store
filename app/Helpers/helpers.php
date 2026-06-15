@@ -1,5 +1,22 @@
 <?php
 
+if (!function_exists('formatRibuan')) {
+	/**
+	 * Format angka dengan pemisah ribuan tanpa Rp
+	 *
+	 * @param  mixed  $number
+	 * @return string
+	 */
+	function formatRibuan($number): string
+	{
+		if (!is_numeric($number)) {
+			return '0';
+		}
+
+		return number_format($number, 0, '.', ',');
+	}
+}
+
 if (!function_exists('formatRupiah')) {
 	/**
 	 * Format angka ke Rupiah

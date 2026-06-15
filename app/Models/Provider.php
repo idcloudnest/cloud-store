@@ -39,6 +39,13 @@ class Provider extends Model
 		);
 	}
 
+	protected function lastUpdateIso(): Attribute
+	{
+		return Attribute::make(
+			get: fn () => $this->updated_at->toIso8601String(),
+		);
+	}
+
 	public function products(): HasMany
 	{
 		return $this->hasMany(Product::class);
