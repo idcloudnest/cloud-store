@@ -1,70 +1,102 @@
 services:
-  cloud-store-dev:
+  cns-web-service-staging:
     build:
-      context: .
+      context: cloud-store/
       args:
         UID: ${UID}
         GID: ${GID}
       dockerfile: Dockerfile.dev
-    image: store-dev:latest
-    container_name: cloud-store-dev
+    image: cloud-nest-store:staging
+    container_name: cns-web-service-staging
     environment:
       - TYPE=WEB
     ports:
-      - "8001:80"
+      - "9001:80"
     volumes:
-      - .:/app
-      - ~/.ssh/dwialim.pem:/app/dwialim.pem:ro
-    env_file:
-      - .env
+      - ./cloud-store:/app
+      - ~/.ssh/vps-dwi/id_rsa:/app/id_rsa:ro
+      - cns-vendor:/app/vendor
     restart: always
     command: php artisan serve --host=0.0.0.0 --port=80
     networks:
       - core
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
 
-  cloud-store-queue-dev:
-    image: store-dev:latest
-    container_name: cloud-store-queue-dev
+  cns-queue-staging:
+    image: cloud-nest-store:staging
+    container_name: cns-queue-staging
     # command: php artisan queue:work --tries=3 --timeout=90
     environment:
       - TYPE=QUEUE
     volumes:
       - .:/app
-    env_file:
-      - .env
+      - cns-vendor:/app/vendor
+    # env_file:
+    #   - ./cloud-store/.env
     restart: always
     command: php artisan queue:work --queue=transactions,logging,default --tries=3 --timeout=30
     networks:
       - core
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
 
-  cloud-store-scheduler-dev:
-    image: store-dev:latest
-    container_name: cloud-store-scheduler-dev
+  cns-scheduler-staging:
+    image: cloud-nest-store:staging
+    container_name: cns-scheduler-staging
     environment:
       - TYPE=SCHEDULER
     volumes:
       - .:/app
+      - cns-vendor:/app/vendor
     env_file:
       - .env
     restart: always
     command: php artisan schedule:work
     networks:
       - core
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
 
-  cloud-store-sawit-db-dev:
-    image: store-dev:latest
-    container_name: cloud-store-sawit-db-dev
+  cns-sawit-db-staging:
+    image: cloud-nest-store:staging
+    container_name: cns-sawit-db-staging
     environment:
       - TYPE=DB_SAWIT
     volumes:
       - .:/app
+      - cns-vendor:/app/vendor
     env_file:
       - .env
     restart: always
     command: php sawitdb/bin/sawit-server.php
     networks:
       - core
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+
+  mysql84:
+    image: mysql:8.4
+    container_name: mysql84
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "yWQP9qpNnmsO6T"
+      MYSQL_DATABASE: "cloud_nest_store"
+      MYSQL_USER: "cloud_store_user"
+      MYSQL_PASSWORD: "sxJ3ew%@t5tx4R"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - core
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   core:
     external: true
+
+volumes:
+  mysql_data:
+  cns-vendor:

@@ -25,10 +25,12 @@ yarn-error.log
 
 backup.*
 /storage/app/*.json
-sawitdb
 *.pem
 id_rsa
 *.bak
 .user.ini
 index.html
 *blade copy.*
+
+.kiro
+.DS_Store
