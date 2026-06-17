@@ -1,11 +1,11 @@
 services:
   cns-web-service-staging:
     build:
-      context: cloud-store/
+      context: .
       args:
         UID: ${UID}
         GID: ${GID}
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.staging
     image: cloud-nest-store:staging
     container_name: cns-web-service-staging
     environment:
@@ -13,8 +13,8 @@ services:
     ports:
       - "9001:80"
     volumes:
-      - ./cloud-store:/app
-      - ~/.ssh/vps-dwi/id_rsa:/app/id_rsa:ro
+      - .:/app
+      # - ~/.ssh/vps-dwi/id_rsa:/app/id_rsa:ro
       - cns-vendor:/app/vendor
     restart: always
     command: php artisan serve --host=0.0.0.0 --port=80
@@ -26,14 +26,13 @@ services:
   cns-queue-staging:
     image: cloud-nest-store:staging
     container_name: cns-queue-staging
-    # command: php artisan queue:work --tries=3 --timeout=90
     environment:
       - TYPE=QUEUE
     volumes:
       - .:/app
       - cns-vendor:/app/vendor
-    # env_file:
-    #   - ./cloud-store/.env
+    env_file:
+      - .env
     restart: always
     command: php artisan queue:work --queue=transactions,logging,default --tries=3 --timeout=30
     networks:
