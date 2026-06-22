@@ -147,7 +147,7 @@
 		<h2 class="gs-section-title">🔥 Game Populer</h2>
 		<div class="gs-popular-row">
 			@foreach($popularItems as $item)
-				@include('components.front.product-card', ['item' => $item, 'type' => 'top-up', 'variant' => 'popular', 'badge' => 'Top up'])
+				@include('pages.product-card', ['item' => $item, 'type' => 'top-up', 'variant' => 'popular', 'badge' => 'Top up'])
 			@endforeach
 		</div>
 	</section>
@@ -167,7 +167,7 @@
 		<h2 class="gs-section-title">Top up game</h2>
 		<div class="gs-product-grid">
 			@foreach($topupItems as $item)
-				@include('components.front.product-card', ['item' => $item, 'type' => 'top-up'])
+				@include('pages.product-card', ['item' => $item, 'type' => 'top-up'])
 			@endforeach
 		</div>
 	</section>
@@ -176,7 +176,7 @@
 		<h2 class="gs-section-title">Bioskop</h2>
 		<div class="gs-product-grid">
 			@foreach($cinemaItems as $item)
-				@include('components.front.product-card', ['item' => $item, 'type' => 'voucher'])
+				@include('pages.product-card', ['item' => $item, 'type' => 'voucher'])
 			@endforeach
 		</div>
 	</section>
@@ -185,7 +185,7 @@
 		<h2 class="gs-section-title">E-Toll</h2>
 		<div class="gs-product-grid">
 			@foreach($etollItems as $item)
-				@include('components.front.product-card', ['item' => $item, 'type' => 'pembayaran'])
+				@include('pages.product-card', ['item' => $item, 'type' => 'pembayaran'])
 			@endforeach
 		</div>
 	</section>
@@ -194,7 +194,7 @@
 		<h2 class="gs-section-title">Tagihan</h2>
 		<div class="gs-product-grid">
 			@foreach($billItems as $item)
-				@include('components.front.product-card', ['item' => $item, 'type' => 'pembayaran'])
+				@include('pages.product-card', ['item' => $item, 'type' => 'pembayaran'])
 			@endforeach
 		</div>
 	</section>
