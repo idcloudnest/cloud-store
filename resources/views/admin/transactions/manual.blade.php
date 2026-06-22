@@ -4,253 +4,315 @@
 
 @section('content')
 	<div class="row justify-content-center">
-		<div class="col-lg-12">
-
-			{{-- Header --}}
-			<div class="d-flex justify-content-between align-items-center mb-4">
+		<div class="col-12">
+			<div class="d-flex justify-content-between align-items-start mb-4">
 				<div>
 					<h4 class="mb-1 fw-bold text-dark">Form Transaksi</h4>
 					<p class="text-muted small mb-0">Input transaksi pelanggan secara manual.</p>
 				</div>
+
+				<div class="d-none d-md-flex align-items-center gap-2 small text-muted">
+					<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">1. Mode</span>
+					<span>›</span>
+					<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">2. Kategori</span>
+					<span>›</span>
+					<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">3. Produk</span>
+					<span>›</span>
+					<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">4. Detail</span>
+				</div>
 			</div>
 
 			<form id="form-transaction" action="{{ route('admin.transactions.store') }}" method="POST">
-				{{-- Hidden Inputs --}}
+				@csrf
+
 				<input type="hidden" name="category_id" id="hidden_category_id">
+				<input type="hidden" name="category" id="category-slug">
 				<input type="hidden" name="transaction_type" id="transaction_type" value="prabayar">
-				{{-- Hidden input pengganti select2 product --}}
 				<input type="hidden" name="product_code" id="product-code" required>
+				<input type="hidden" name="inquiry_ref_id" id="inquiry_ref_id">
+				<input type="hidden" id="bill_amount_value">
+				<input type="hidden" id="bill_admin_fee_value">
+				<input type="hidden" id="bill_total_pay_value">
+				<input id="customer-name-input" name="customer_name" type="hidden">
 
 				<div class="row g-4">
-					{{-- SISI KIRI: INPUT PELANGGAN & PRODUK --}}
 					<div class="col-lg-8">
-						<div class="card border-0 shadow-sm h-100" style="border-radius: 12px;">
+						<div class="card border-0 shadow-sm product-browser-card">
 							<div class="card-body p-4">
-								{{-- Pilihan Produk (Menggunakan Grid seperti gambar) --}}
-								<div class="pt-2">
-									<div class="d-flex justify-content-between align-items-end mb-3">
-										<label class="form-label text-muted small fw-bold text-uppercase mb-0" id="label-product">Pilih Layanan</label>
-										{{-- Search Box --}}
-										<div class="input-group input-group-sm" style="max-width: 220px;">
-											<span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-search"></i></span>
-											<input type="text" id="searchProduct" class="form-control shadow-none border-start-0" placeholder="Cari Produk...">
+
+								<div class="mode-switch mb-4">
+									<button type="button" class="mode-btn active" id="tab-prabayar" onclick="switchMode('prabayar')">
+										<i class="fas fa-bolt me-2"></i> Prabayar
+									</button>
+									<button type="button" class="mode-btn" id="tab-pascabayar" onclick="switchMode('pascabayar')">
+										<i class="fas fa-receipt me-2"></i> Pascabayar
+									</button>
+								</div>
+
+								<div class="section-block mb-4">
+									<div class="d-flex align-items-center justify-content-between mb-3">
+										<div>
+											<h6 class="fw-bold text-dark mb-1">Pilih Kategori</h6>
+											<p class="text-muted small mb-0" id="category-helper-text">Pilih kategori layanan yang ingin ditransaksikan.</p>
 										</div>
 									</div>
 
-									{{-- WRAPPER SCROLL BARU (Scroll diletakkan di sini) --}}
+									<div class="category-scroll">
+										<div class="d-flex gap-2 flex-nowrap p-1" id="category-grid">
+											@foreach($categories as $cat)
+												@php
+													$parentSlug = $cat->parent->slug ?? '';
+													$slug = $cat->slug;
 
+													$icon = $cat->icon ?? 'fa-cube';
 
-									{{-- ==================================================================================================== --}}
-									<div id="container-filter" class="mb-3 d-none">
-										<div class="d-flex flex-wrap gap-2 p-2 border-bottom" id="categories-filter-list"></div>
-										<div class="d-flex flex-wrap gap-2 p-2" id="brands-filter-list"></div>
+													if(str_contains($slug, 'pln')) $icon = 'fa-bolt';
+													elseif(str_contains($slug, 'game')) $icon = 'fa-gamepad';
+													elseif(str_contains($slug, 'operator-seluler')) $icon = 'fa-mobile-alt';
+													elseif(str_contains($slug, 'data')) $icon = 'fa-wifi';
+													elseif(str_contains($slug, 'money')) $icon = 'fa-wallet';
+													elseif(str_contains($slug, 'voucher')) $icon = 'fa-ticket-alt';
+													elseif(str_contains($slug, 'tagihan')) $icon = 'fa-receipt';
+												@endphp
+
+												<div class="category-item"
+													data-name="{{ strtolower($cat->name) }}"
+													data-slug="{{ $cat->slug }}"
+													data-parent="{{ $parentSlug }}">
+													<button type="button"
+														class="category-card"
+														onclick="selectCategory(this, {{json_encode([
+															'id' => $cat->id,
+															'name' => strtolower($cat->name),
+															'slug' => $cat->slug,
+															'parent' => optional($cat->parent)->slug
+														])}})">
+														<span class="category-icon">
+															<i class="fas {{ $icon }}"></i>
+														</span>
+														<span class="category-name">{{ strtolower($cat->name) == 'e-money' ? $cat->name . " / Wallet" : $cat->name }}</span>
+													</button>
+												</div>
+											@endforeach
+										</div>
+									</div>
+								</div>
+
+								<div class="section-block">
+									<div class="d-flex flex-column flex-md-row gap-3 justify-content-between align-items-md-end mb-3">
+										<div>
+											<h6 class="fw-bold text-dark mb-1" id="label-product">Pilih Produk</h6>
+											<p class="text-muted small mb-0" id="product-helper-text">Produk akan muncul setelah kategori dipilih.</p>
+										</div>
+
+										<div class="d-flex gap-2">
+											<div class="input-group input-group-sm product-search">
+												<span class="input-group-text bg-white border-end-0 text-muted">
+													<i class="fas fa-search"></i>
+												</span>
+												<input type="text" id="searchProduct" class="form-control border-start-0 shadow-none" placeholder="Cari produk...">
+											</div>
+
+											<select id="sortProduct" class="form-select form-select-sm shadow-none product-sort">
+												{{-- <option value="nominal_asc">Nominal Terkecil</option> --}}
+												<option value="price_asc">Termurah</option>
+												<option value="price_desc">Termahal</option>
+												<option value="name_asc">Nama A-Z</option>
+											</select>
+										</div>
 									</div>
 
-									<div class="product-scroll-wrapper pe-2">
-										{{-- Container List Grid Produk (Bungkus di dalamnya) --}}
+									<div id="container-filter" class="filter-panel d-none">
+										<div class="filter-row d-none" id="categories-filter-wrapper">
+											<div class="filter-label">Tipe</div>
+											<div class="filter-chips" id="categories-filter-list"></div>
+										</div>
+
+										<div class="filter-row d-none" id="brands-filter-wrapper">
+											<div class="filter-label">Brand</div>
+											<div class="filter-chips" id="brands-filter-list"></div>
+										</div>
+									</div>
+
+									<div class="product-scroll-wrapper mt-3">
 										<div id="product-grid-container" class="row g-3 p-2">
-											{{-- State Kosong Default --}}
-											<div class="col-12 text-center text-muted py-5 border rounded-3 bg-light" id="empty-product-state">
-												<i class="fas fa-box-open fa-3x mb-3 opacity-25"></i>
-												<p class="mb-0 small">Silahkan pilih Kategori / Pelanggan di sebelah kanan terlebih dahulu.</p>
+											<div class="col-12">
+												<div class="empty-state">
+													<i class="fas fa-hand-pointer"></i>
+													<h6>Pilih kategori dulu</h6>
+													<p>Produk akan ditampilkan berdasarkan kategori dan mode transaksi.</p>
+												</div>
 											</div>
 										</div>
 									</div>
-									<div id="product-pagination" class="mt-3"></div>
-									{{-- ==================================================================================================== --}}
-								</div>
 
-								{{-- Rincian Tagihan (Pascabayar) --}}
-								<div id="bill-details" class="alert alert-info border-0 shadow-sm mt-4 d-none" style="border-radius: 8px;">
-									<div class="d-flex align-items-center mb-2">
-										<i class="fas fa-receipt fa-2x me-3 opacity-50"></i>
-										<div>
-											<h6 class="fw-bold mb-0">Rincian Tagihan</h6>
-											<small class="text-muted">Pastikan data sesuai sebelum membayar</small>
-										</div>
-									</div>
-									<hr class="my-2 opacity-25">
-									<div class="row g-2 small">
-										<div class="col-6 text-muted">Nama Pelanggan</div>
-										<div class="col-6 fw-bold text-end" id="bill-name">-</div>
-										<div class="col-6 text-muted">Periode / Lembar</div>
-										<div class="col-6 fw-bold text-end" id="bill-period">-</div>
-										<div class="col-6 text-muted">Jumlah Tagihan</div>
-										<div class="col-6 fw-bold text-end" id="bill-amount">-</div>
-										<div class="col-6 text-muted">Biaya Admin</div>
-										<div class="col-6 fw-bold text-end" id="bill-admin">-</div>
-										<div class="col-12"><hr class="my-1 border-dashed"></div>
-										<div class="col-6 fw-bold text-primary fs-6">TOTAL BAYAR</div>
-										<div class="col-6 fw-bold text-primary text-end fs-6" id="bill-total">-</div>
-									</div>
-									<input type="hidden" name="inquiry_ref_id" id="inquiry_ref_id">
+									<div id="product-pagination" class="mt-3"></div>
 								</div>
 							</div>
 						</div>
 					</div>
 
-					{{-- SISI KANAN: PILIH KATEGORI --}}
 					<div class="col-lg-4">
-						<div class="card border-0 shadow-sm" style="border-radius: 12px;">
+						<div class="card border-0 shadow-sm transaction-summary-card">
 							<div class="card-body p-4">
-								<h6 class="card-title fw-bold text-dark mb-4">Pilih Kategori</h6>
+								<div id="summary-empty">
+									<div class="summary-empty-state">
+										<div class="summary-empty-icon">
+											<i class="fas fa-shopping-basket"></i>
+										</div>
+										<h6 class="fw-bold mb-2">Belum ada produk dipilih</h6>
+										<p class="text-muted small mb-0">
+											Pilih mode, kategori, lalu klik salah satu produk untuk mulai transaksi.
+										</p>
+									</div>
+								</div>
 
-								{{-- Tabs (Pascabayar/Prabayar) --}}
-								{{-- <div class="card border-0 shadow-sm mb-3 overflow-hidden bg-light" style="border-radius: 8px;">
-									<div class="card-body p-0">
-										<div class="row g-0 text-center">
-											<div class="col-6">
-												<button type="button" class="btn btn-sm w-100 rounded-0 fw-bold py-2 active-mode-tab"
-														id="tab-prabayar" onclick="switchMode('prabayar')">
-													PRABAYAR
-												</button>
+								<div id="summary-content" class="d-none">
+									<div class="d-flex align-items-start justify-content-between mb-3">
+										<div>
+											<h6 class="fw-bold mb-1">Produk Dipilih</h6>
+											<p class="text-muted small mb-0">Pastikan produk dan data pelanggan sudah benar.</p>
+										</div>
+										<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" id="summary-mode">Prabayar</span>
+									</div>
+
+									<div class="selected-product-box mb-4">
+										<div class="d-flex align-items-start gap-3">
+											<div class="selected-product-icon">
+												<i class="fas fa-box"></i>
 											</div>
-											<div class="col-6">
-												<button type="button" class="btn btn-sm w-100 rounded-0 fw-bold py-2 text-muted"
-														id="tab-pascabayar" onclick="switchMode('pascabayar')">
-													PASCABAYAR
-												</button>
+											<div class="flex-grow-1">
+												<div class="fw-bold text-dark" id="summary-product-name">-</div>
+												<div class="small text-muted" id="summary-product-meta">-</div>
+												<div class="fw-bold text-success mt-2" id="summary-product-price">-</div>
 											</div>
 										</div>
 									</div>
-								</div> --}}
 
-								{{-- Category List / Grid --}}
-								<div class="row g-2 pb-4 border-bottom" id="category-grid">
-									@foreach($categories as $cat)
-										{{-- @if($cat->parent_id) --}}
-											@php
-												$parentSlug = $cat->parent->slug ?? 'unknown';
-												$icon = $cat->icon ?? 'fa-cube';
-												$color = 'primary';
-												$arrColor = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'muted'];
-
-												if(str_contains($cat->slug, 'pln')) { $icon = 'fa-bolt'; $color = $arrColor[array_rand($arrColor)]; }
-												elseif(str_contains($cat->slug, 'game')) { $icon = 'fa-gamepad'; $color = $arrColor[array_rand($arrColor)]; }
-												elseif(str_contains($cat->slug, 'operator-seluler')) { $icon = 'fa-mobile-alt'; $color = $arrColor[array_rand($arrColor)]; }
-												elseif(str_contains($cat->slug, 'data')) { $icon = 'fa-wifi'; $color = $arrColor[array_rand($arrColor)]; }
-												elseif(str_contains($cat->slug, 'wallet')) { $icon = 'fa-wallet'; $color = $arrColor[array_rand($arrColor)]; }
-												elseif(str_contains($cat->slug, 'voucher')) { $icon = 'fa-ticket-alt'; $color = $arrColor[array_rand($arrColor)]; }
-												elseif(str_contains($cat->slug, 'tagihan')) { $icon = 'fa-receipt'; $color = $arrColor[array_rand($arrColor)]; }
-											@endphp
-
-											<div class="col-6 category-item"
-												 data-slug="{{ $cat->slug }}"
-												 data-parent="{{ $parentSlug }}">
-
-												<div class="card border-0 shadow-sm h-100 category-card cursor-pointer btn-anim bg-light"
-													data-slug="{{ $cat->slug }}"
-													{{-- onclick="selectCategory(this, '{{ $cat->id }}', '{{ $cat->name }}')" --}}
-													onclick="selectCategory(this, {{ json_encode([
-														'id' => $cat->id,
-														'name' => strtolower($cat->name),
-														'slug' => $cat->slug,
-														'parent' => optional($cat->parent)->slug ?? null
-													]) }})"
-													{{-- onclick='selectCategory(this, @json([
-														"id" => $cat->id,
-														"name" => $cat->name,
-														"slug" => $cat->slug,
-														"parent" => optional($cat->parent)->slug
-													]))' --}}
-													style="border-radius: 8px;">
-													<div class="card-body text-center p-3">
-														<div class="icon-wrapper mb-2 text-{{ $color }}">
-															<i class="fas {{ $icon }} fa-lg"></i>
-														</div>
-														<span class="small fw-bold text-uppercase d-block" style="font-size: 0.75rem;">{{ $cat->name }}</span>
-													</div>
-												</div>
-											</div>
-										{{-- @endif --}}
-									@endforeach
-								</div>
-
-								<h6 class="card-title fw-bold text-dark mb-4 pt-4">Detail Pelanggan & Produk</h6>
-
-								<div class="row g-4 mb-4">
-									{{-- User Select --}}
-									<div class="col-md-12">
+									<div class="mb-4">
 										<label class="form-label text-muted small fw-bold text-uppercase">Pelanggan</label>
 										<select class="form-select" id="user-id" name="user_id" required>
-											{{-- <option value="#" data-role="anonim" data-balance="Rp. 0">ANONIM</option> --}}
-											<option value="{{ auth()->id() }}" data-role="{{ auth()->user()->role }}" class="fw-bold bg-light" data-balance="{{ auth()->user()->balance_formatted }}" data-self="1">
+											<option value="{{ auth()->id() }}"
+												data-role="{{ auth()->user()->role }}"
+												data-balance="{{ auth()->user()->balance_formatted }}"
+												data-self="1">
 												SAYA SENDIRI
 											</option>
+
 											@foreach($users as $user)
 												@if($user->id != auth()->id())
-													<option value="{{ $user->id }}" data-role="{{ $user->role }}" data-balance="{{ $user->balance_formatted }}">{{ $user->username }}</option>
+													<option value="{{ $user->id }}"
+														data-role="{{ $user->role }}"
+														data-balance="{{ $user->balance_formatted }}">
+														{{ $user->username }}
+													</option>
 												@endif
 											@endforeach
 										</select>
 									</div>
 
-									{{-- Input Nomor Tujuan / ID --}}
-									<div class="col-md-12">
+									<div class="mb-4">
 										<label id="label-target" class="form-label text-muted small fw-bold text-uppercase">Nomor / ID Tujuan</label>
 
-										{{-- A. INPUT STANDARD --}}
-										<div class="input-group custom-input-group rounded-3 overflow-hidden border" id="standard-input-box">
-											<span class="input-group-text border-0 bg-light text-muted border-end">
-												<i id="icon-target" class="fas fa-phone-alt text-muted"></i>
+										<div class="input-group clean-input" id="standard-input-box">
+											<span class="input-group-text">
+												<i id="icon-target" class="fas fa-phone-alt"></i>
 											</span>
-											<input type="text" class="form-control border-0 bg-transparent shadow-none text-body"
-											id="target" name="target" placeholder="Masukan Nomor..." autocomplete="off" oninput="getUsername(this)">
-											{{-- <span class="input-group-text border-0 bg-transparent text-primary" id="loading-icon" style="display: none;">
-												<i class="fas fa-circle-notch fa-spin"></i>
-											</span> --}}
+											<input type="text"
+												class="form-control"
+												id="target"
+												name="target"
+												placeholder="Masukan nomor..."
+												autocomplete="off"
+												oninput="getUsername(this)">
 										</div>
 
-										{{-- B. INPUT KHUSUS GAMES --}}
 										<div class="row g-2 d-none" id="game-input-box">
 											<div class="col-7">
-												<div class="input-group rounded-3 overflow-hidden border">
-													<span class="input-group-text border-0 bg-light text-muted"><i class="fas fa-user"></i></span>
-													<input type="text" class="form-control border-0 shadow-none bg-white cursor-disabled"
-													id="game_user_id" name="game_user_id" placeholder="User ID" data-type="user-id" oninput="getUsername(this)" disabled value="790075827">
+												<div class="input-group clean-input">
+													<span class="input-group-text"><i class="fas fa-user"></i></span>
+													<input type="text"
+														class="form-control"
+														id="game_user_id"
+														name="game_user_id"
+														placeholder="User ID"
+														data-type="user-id"
+														oninput="getUsername(this)"
+														disabled>
 												</div>
 											</div>
 											<div class="col-5">
-												<div class="input-group rounded-3 overflow-hidden border">
-													<span class="input-group-text border-0 bg-light text-muted"><i class="fas fa-server"></i></span>
-													<input type="text" class="form-control border-0 shadow-none bg-white cursor-disabled"
-													id="game_server_id" name="game_server_id" placeholder="Zone ID" data-type="server-id" oninput="getUsername(this)" disabled value="12157">
+												<div class="input-group clean-input">
+													<span class="input-group-text"><i class="fas fa-server"></i></span>
+													<input type="text"
+														class="form-control"
+														id="game_server_id"
+														name="game_server_id"
+														placeholder="Zone ID"
+														data-type="server-id"
+														oninput="getUsername(this)"
+														disabled>
 												</div>
 											</div>
 										</div>
+
 										<div id="customer-name-result" class="form-text fw-bold mt-2 ps-1" style="display: none;"></div>
-										<input id="customer-name-input" name="customer_name" type="hidden">
 									</div>
 
-									{{-- Custom Price (Hanya untuk Prabayar) --}}
-									<div class="col-md-12" id="box-custom-price">
-										<label class="form-label text-muted small fw-bold text-uppercase">Harga Jual (Override)</label>
-										<div class="input-group border rounded-3 overflow-hidden">
-											<span class="input-group-text bg-light border-0">Rp</span>
-											<input type="number" class="form-control border-0 shadow-none" name="custom_price" placeholder="Default">
+									<div class="mb-4" id="box-custom-price">
+										<label class="form-label text-muted small fw-bold text-uppercase">Harga Jual Override</label>
+										<div class="input-group clean-input">
+											<span class="input-group-text">Rp</span>
+											<input type="number" class="form-control" name="custom_price" placeholder="Default">
+										</div>
+										<div class="form-text">Kosongkan kalau ingin memakai harga default produk.</div>
+									</div>
+
+									<div id="bill-details" class="bill-box d-none mb-4">
+										<div class="d-flex align-items-center gap-2 mb-3">
+											<i class="fas fa-receipt text-primary"></i>
+											<div>
+												<div class="fw-bold">Rincian Tagihan</div>
+												<div class="small text-muted">Pastikan data sesuai sebelum bayar.</div>
+											</div>
+										</div>
+
+										<div class="bill-row">
+											<span>Nama Pelanggan</span>
+											<strong id="bill-name">-</strong>
+										</div>
+										<div class="bill-row">
+											<span>Periode / Detail</span>
+											<strong id="bill-period">-</strong>
+										</div>
+										<div class="bill-row">
+											<span>Jumlah Tagihan</span>
+											<strong id="bill-amount">-</strong>
+										</div>
+										<div class="bill-row">
+											<span>Biaya Admin</span>
+											<strong id="bill-admin">-</strong>
+										</div>
+										<div class="bill-total">
+											<span>Total Bayar</span>
+											<strong id="bill-total">-</strong>
 										</div>
 									</div>
-								</div>
 
-								{{-- Special Case: Game Brands --}}
-								{{-- <div class="col-md-12 d-none mt-3" id="game-brand-box">
-									<label class="form-label text-muted small fw-bold text-uppercase">Pilih Game</label>
-									<select class="form-select" id="game-brand-select" data-placeholder="-- PILIH GAME --"></select>
-								</div> --}}
+									<div class="d-grid gap-2">
+										<button type="button" onclick="inquiryBill()" id="btn-check-bill" class="btn btn-info text-white fw-bold py-2 d-none">
+											<i class="fas fa-search me-2"></i> Cek Tagihan
+										</button>
 
-								{{-- Action Buttons --}}
-								<div class="mt-4">
-									<button type="button" onclick="inquiryBill()" id="btn-check-bill" class="btn btn-info text-white w-100 py-2 fw-bold d-none" style="border-radius: 8px;">
-										<i class="fas fa-search me-2"></i> CEK TAGIHAN
-									</button>
-
-									<button type="button" onclick="storeTransaction()" id="btn-submit" class="btn btn-primary w-100 py-2 fw-bold" style="border-radius: 8px;">
-										<i class="fas fa-paper-plane me-2"></i> PROSES TRANSAKSI
-									</button>
+										<button type="button" onclick="storeTransaction()" id="btn-submit" class="btn btn-primary fw-bold py-2">
+											<i class="fas fa-paper-plane me-2"></i> Proses Transaksi
+										</button>
+									</div>
 								</div>
 							</div>
 						</div>
 					</div>
+
 				</div>
 			</form>
 		</div>
@@ -260,580 +322,1104 @@
 @push('styles')
 	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
 	<style>
-		.cursor-pointer { cursor: pointer; }
+		.product-browser-card,
+		.transaction-summary-card {
+			border-radius: 18px;
+		}
 
-		/* Style Card Kategori saat Active */
-		.category-card { transition: all 0.2s ease; border: 2px solid transparent !important;}
-		.category-card:hover { transform: translateY(-3px); }
+		.transaction-summary-card {
+			position: sticky;
+			top: 90px;
+		}
+
+		.mode-switch {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			background: #f1f5f9;
+			padding: 6px;
+			border-radius: 14px;
+			gap: 6px;
+		}
+
+		.mode-btn {
+			border: 0;
+			background: transparent;
+			color: #64748b;
+			font-weight: 700;
+			border-radius: 10px;
+			padding: 12px;
+			transition: .2s ease;
+		}
+
+		.mode-btn.active {
+			background: #2563eb;
+			color: #fff;
+			box-shadow: 0 8px 18px rgba(37, 99, 235, .24);
+		}
+
+		.section-block {
+			border: 1px solid #eef2f7;
+			border-radius: 16px;
+			padding: 18px;
+			background: #fff;
+		}
+
+		.category-scroll {
+			overflow-x: auto;
+			padding-bottom: 4px;
+		}
+
+		.category-scroll::-webkit-scrollbar {
+			height: 5px;
+		}
+
+		.category-scroll::-webkit-scrollbar-thumb {
+			background: #cbd5e1;
+			border-radius: 999px;
+		}
+
+		.category-item {
+			min-width: 128px;
+		}
+
+		.category-card {
+			width: 100%;
+			min-height: 92px;
+			border: 1px solid #e2e8f0;
+			background: #f8fafc;
+			border-radius: 14px;
+			padding: 14px 10px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			transition: .2s ease;
+		}
+
+		.category-card:hover {
+			border-color: #2563eb;
+			background: #eff6ff;
+			transform: translateY(-2px);
+		}
+
 		.category-card.active {
-			border-color: var(--primary-color) !important;
-			background-color: rgba(102, 126, 234, 0.05) !important;
+			border-color: #2563eb;
+			background: #eff6ff;
+			box-shadow: 0 0 0 2px rgba(37, 99, 235, .14);
 		}
 
-		/* Tab Switch Style */
-		.active-mode-tab {
-			background-color: var(--primary-color) !important;
-			color: white !important;
-			box-shadow: inset 0 -3px 0 rgba(0,0,0,0.1);
+		.category-icon {
+			width: 34px;
+			height: 34px;
+			border-radius: 12px;
+			background: #fff;
+			color: #2563eb;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 4px 10px rgba(15, 23, 42, .06);
 		}
 
-		/* ==================================================================================================== */
-		.categories-chip {
-			border: 1px solid #e2e8f0;
-			padding: 6px 12px;
-			border-radius: 20px;
-			font-size: 0.75rem;
-			cursor: pointer;
+		.category-name {
+			font-size: .76rem;
+			font-weight: 800;
+			text-transform: uppercase;
+			color: #1f2937;
+			text-align: center;
+			line-height: 1.25;
+		}
+
+		.product-search {
+			width: 230px;
+		}
+
+		.product-sort {
+			width: 130px;
+		}
+
+		.filter-panel {
 			background: #f8fafc;
-			transition: all 0.2s ease;
+			border: 1px solid #eef2f7;
+			border-radius: 14px;
+			padding: 12px;
 		}
-		.categories-chip:hover {
-			background: #e2e8f0;
+
+		.filter-row {
+			display: flex;
+			gap: 12px;
+			align-items: flex-start;
+			padding: 8px 0;
 		}
-		.categories-chip.active {
-			background: #10b981;
-			color: white;
-			border-color: #10b981;
+
+		.filter-row + .filter-row {
+			border-top: 1px solid #e2e8f0;
 		}
-		.brands-chip {
+
+		.filter-label {
+			width: 52px;
+			font-size: .75rem;
+			font-weight: 800;
+			color: #64748b;
+			text-transform: uppercase;
+			padding-top: 6px;
+		}
+
+		.filter-chips {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			flex: 1;
+		}
+
+		.filter-chip {
 			border: 1px solid #e2e8f0;
-			padding: 6px 12px;
-			border-radius: 20px;
-			font-size: 0.75rem;
+			background: #fff;
+			color: #334155;
+			border-radius: 999px;
+			padding: 7px 12px;
+			font-size: .78rem;
+			font-weight: 700;
 			cursor: pointer;
-			background: #f8fafc;
-			transition: all 0.2s ease;
+			transition: .2s ease;
 		}
-		.brands-chip:hover {
-			background: #e2e8f0;
-		}
-		.brands-chip.active {
+
+		.filter-chip:hover,
+		.filter-chip.active {
 			background: #10b981;
-			color: white;
 			border-color: #10b981;
+			color: #fff;
 		}
 
-
-		#product-pagination .btn {
-			min-width: 36px;
-			border-radius: 8px;
-		}
-		/* --- STYLE BARU UNTUK KARTU PRODUK (GRID) --- */
-		/* Kunci Tinggi Wrapper Agar Tidak Molor */
-		#product-grid-container {
-			min-height: 120px;
-		}
 		.product-scroll-wrapper {
-			position: relative;
+			max-height: 650px;
+			overflow-y: auto;
+			overflow-x: hidden;
+			padding-right: 6px;
 		}
 
+		.product-scroll-wrapper::-webkit-scrollbar {
+			width: 6px;
+		}
+
+		.product-scroll-wrapper::-webkit-scrollbar-thumb {
+			background: #cbd5e1;
+			border-radius: 999px;
+		}
 
 		.product-card {
 			height: 100%;
+			border: 1px solid #e2e8f0;
+			border-radius: 16px;
+			background: #fff;
+			padding: 14px;
+			cursor: pointer;
+			transition: .2s ease;
 			display: flex;
 			flex-direction: column;
+			min-height: 168px;
+		}
+
+		.product-card:hover {
+			border-color: #2563eb;
+			box-shadow: 0 12px 24px rgba(15, 23, 42, .06);
+			transform: translateY(-2px);
+		}
+
+		.product-card.selected {
+			border-color: #2563eb;
+			background: #eff6ff;
+			box-shadow: 0 0 0 2px rgba(37, 99, 235, .12);
+		}
+
+		.product-card.locked {
+			opacity: .55;
+			cursor: not-allowed;
+			filter: grayscale(.8);
+		}
+
+		.product-status {
+			font-size: .72rem;
+			font-weight: 800;
+			border-radius: 999px;
+			padding: 4px 8px;
+		}
+
+		.product-status.ready {
+			background: rgba(16, 185, 129, .12);
+			color: #059669;
+		}
+
+		.product-status.down {
+			background: rgba(239, 68, 68, .12);
+			color: #dc2626;
 		}
 
 		.product-name {
-			min-height: 38px; /* biar sejajar */
+			font-size: .92rem;
+			font-weight: 800;
+			color: #1e293b;
+			line-height: 1.3;
+			margin-bottom: 6px;
 		}
-		/* #product-grid-container {
+
+		.product-meta {
+			font-size: .75rem;
+			color: #64748b;
+			line-height: 1.3;
+		}
+
+		.product-price {
+			margin-top: auto;
+			background: #f8fafc;
+			border-radius: 12px;
+			padding: 10px 12px;
+			font-weight: 900;
+			color: #10b981;
+		}
+
+		.empty-state,
+		.summary-empty-state {
+			border: 1px dashed #cbd5e1;
+			border-radius: 16px;
+			background: #f8fafc;
+			padding: 42px 20px;
+			text-align: center;
+			color: #64748b;
+		}
+
+		.empty-state i,
+		.summary-empty-icon {
+			font-size: 2rem;
+			color: #94a3b8;
+			margin-bottom: 12px;
+		}
+
+		.summary-empty-icon {
+			width: 58px;
+			height: 58px;
+			margin: 0 auto 14px;
+			border-radius: 18px;
+			background: #eef2ff;
+			color: #2563eb;
 			display: flex;
-			flex-wrap: wrap;
-		} */
-		.product-scroll-wrapper {
-			max-height: 650px !important;
-			overflow-y: auto !important;
-			overflow-x: hidden;
-			display: block !important;
+			align-items: center;
+			justify-content: center;
 		}
 
-		/* Style Scrollbar */
-		.product-scroll-wrapper::-webkit-scrollbar { width: 6px; }
-		.product-scroll-wrapper::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-		.product-scroll-wrapper::-webkit-scrollbar-track { background-color: transparent; }
-		/* .product-scroll-wrapper::-webkit-scrollbar { width: 6px; }
-		.product-scroll-wrapper::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-		.product-scroll-wrapper::-webkit-scrollbar-track { background-color: transparent; } */
-		/* ==================================================================================================== */
+		.selected-product-box {
+			background: #f8fafc;
+			border: 1px solid #eef2f7;
+			border-radius: 16px;
+			padding: 14px;
+		}
 
+		.selected-product-icon {
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			background: #eff6ff;
+			color: #2563eb;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
+		}
 
-		.product-card {
+		.clean-input {
 			border: 1px solid #e2e8f0;
+			border-radius: 12px;
+			overflow: hidden;
+			background: #fff;
+		}
+
+		.clean-input .input-group-text {
+			border: 0;
+			background: #f8fafc;
+			color: #64748b;
+		}
+
+		.clean-input .form-control {
+			border: 0;
+			box-shadow: none;
+		}
+
+		.bill-box {
+			background: #eff6ff;
+			border: 1px solid #bfdbfe;
+			border-radius: 16px;
+			padding: 14px;
+		}
+
+		.bill-row {
+			display: flex;
+			justify-content: space-between;
+			gap: 12px;
+			padding: 8px 0;
+			font-size: .85rem;
+			border-bottom: 1px solid rgba(37, 99, 235, .12);
+		}
+
+		.bill-row span {
+			color: #64748b;
+		}
+
+		.bill-row strong {
+			text-align: right;
+			color: #1e293b;
+		}
+
+		.bill-total {
+			display: flex;
+			justify-content: space-between;
+			gap: 12px;
+			padding-top: 12px;
+			font-weight: 900;
+			color: #2563eb;
+		}
+
+		#product-pagination .btn {
+			min-width: 36px;
 			border-radius: 10px;
-			transition: all 0.2s ease-in-out;
-			cursor: pointer;
-			user-select: none;
-		}
-		.product-card:hover {
-			border-color: #10b981;
-			transform: translateY(-2px);
-			box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-		}
-		/* Style saat Radio Box terpilih */
-		.btn-check:checked + .product-card {
-			border-color: #10b981 !important;
-			background-color: rgba(16, 185, 129, 0.05) !important;
-			box-shadow: 0 0 0 1.5px #10b981;
-		}
-		.btn-check:checked + .product-card .btn-beli {
-			background-color: #059669;
-			color: #fff;
-		}
-		.btn-check:checked + .product-card .price-text {
-			color: #10b981 !important;
 		}
 
-		/* Box Harga */
-		.price-box {
-			background-color: #f8fafc;
-			border: 1px solid #f1f5f9;
-		}
-		.text-success { color: #10b981 !important; }
+		@media (max-width: 767px) {
+			.product-search,
+			.product-sort {
+				width: 100%;
+			}
 
-		/* Tombol Beli Hijau */
-		.btn-beli {
-			background-color: #10b981;
-			color: #fff;
-			transition: all 0.2s ease;
-		}
-		.btn-beli:hover { background-color: #059669; color: #fff; }
+			.category-item {
+				min-width: 118px;
+			}
 
-		/* Disable State */
-		.locked-item {
-			opacity: 0.8;
-			filter: grayscale(50%);
-			cursor: not-allowed !important;
-			/* background-color: #f8f9fa !important; */
+			.transaction-summary-card {
+				position: static;
+			}
 		}
-		.locked-item:hover { transform: none; box-shadow: none; border-color: #e2e8f0; }
 	</style>
 @endpush
 
 @push('scripts')
 	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-	<script>
-		let currentMode = 'prabayar';
-		let currentCategory = null;
-		let currentSlug = null;
-		let currentCategories = null;
-		let currentBrands = null;
-		let currentCategoryId = null;
-		let typingTimer;
-		const doneTypingInterval = 1000;
-		let currentPage = 1;
 
-		const $billDetail  = $('#bill-details');
-		const $targetInput = $('#target');
-		// const $loadingIcon = $('#loading-icon');
-		const $resultDiv   = $('#customer-name-result');
+	<script>
+		const state = {
+			mode: 'prabayar',
+			category: null,
+			categoryId: null,
+			categorySlug: null,
+			typeCategoryId: null,
+			brandId: null,
+			product: null,
+			page: 1,
+			search: '',
+			sort: 'price_asc',
+			inquiryRefId: null,
+		};
+
+		let typingTimer;
+		let searchTimer;
+		const doneTypingInterval = 800;
 
 		const config = {
 			'operator-seluler': { label: 'Nomor Handphone', icon: 'fa-mobile-alt', placeholder: '0812xxxx' },
-			'token-pln':    { label: 'Nomor Meter / ID Pel', icon: 'fa-bolt',  placeholder: 'Masukan No Meter / ID Pel' },
-			'games':            { label: 'ID Player',       icon: 'fa-gamepad',    placeholder: '123456 (1234)' },
-			'e-wallet':         { label: 'Nomor Handphone', icon: 'fa-wallet',     placeholder: '0812xxxx' },
-			'voucher':          { label: 'Nomor', icon: 'fa-ticket-alt', placeholder: '0812xxxx' },
-			'streaming':        { label: 'Nomor HP / Akun', icon: 'fa-play-circle',placeholder: '0812xxxx' },
-			'tagihan-ppob':     { label: 'ID Pelanggan',    icon: 'fa-receipt',    placeholder: 'Masukan ID Pelanggan' },
+			'token-pln': { label: 'Nomor Meter / ID Pel', icon: 'fa-bolt', placeholder: 'Masukan No Meter / ID Pel' },
+			'pln': { label: 'ID Pelanggan PLN', icon: 'fa-bolt', placeholder: 'Masukan ID Pelanggan PLN' },
+			'games': { label: 'ID Player', icon: 'fa-gamepad', placeholder: 'User ID' },
+			'e-money': { label: 'Nomor Handphone', icon: 'fa-wallet', placeholder: '0812xxxx' },
+			'voucher': { label: 'Nomor', icon: 'fa-ticket-alt', placeholder: '0812xxxx' },
+			'streaming': { label: 'Nomor HP / Akun', icon: 'fa-play-circle', placeholder: '0812xxxx' },
+			'tagihan-ppob': { label: 'ID Pelanggan', icon: 'fa-receipt', placeholder: 'Masukan ID Pelanggan' },
 		};
 
-		let $formatter, $swal;
+		$(document).ready(async function () {
+			if (typeof initModul === 'function') {
+				try {
+					const module = await initModul();
+					window.$formatter = module.formatter;
+					window.$swal = module.swal;
+				} catch (e) {}
+			}
 
-		$(document).ready(async () => {
-			module = await initModul();
-			$formatter = module.formatter;
-			$swal = module.swal;
-
-			// $('#user-id').select2({ theme: 'bootstrap-5', width: '100%', dropdownParent: $('#transaction-card'), templateResult: formatUser, templateSelection: formatUser, escapeMarkup: m => m });
-			$('#user-id').select2({ theme: 'bootstrap-5', width: '100%', templateResult: formatUser, templateSelection: formatUser, escapeMarkup: m => m });
-			$('#game-brand-select').select2({ theme: 'bootstrap-5', width: '100%' });
-
-			// $('#game-brand-select').on('change', function() {
-			// 	var brandName = $(this).val();
-			// 	toggleGameInputs(!!brandName);
-			// 	// if(brandName) loadProducts(brandName, true);
-			// 	if(brandName) loadProducts({ identifier: brandName, page: currentPage })
-			// });
+			$('#user-id').select2({
+				theme: 'bootstrap-5',
+				width: '100%',
+				templateResult: formatUser,
+				templateSelection: formatUser,
+				escapeMarkup: m => m
+			});
 
 			$('#user-id').on('change', function () {
-				// if (currentCategory.includes('games')) {
-				// 	var brandName = $('#game-brand-select').val();
-				// 	toggleGameInputs(!!brandName);
-				// 	if(brandName) loadProducts(brandName, true);
-				// } else {
-				// 	if(currentCategoryId) loadProducts(currentCategoryId, false);
-				// }
-				// if (currentCategory) loadProducts(currentCategory.id, false);
-				if (currentCategory) loadProducts({ identifier: currentCategoryId, page: currentPage, user_id: $(this).val() });
+				if (state.categoryId) {
+					state.page = 1;
+					loadProducts();
+				}
 			});
 
-			// LOGIC PENCARIAN PRODUK GRID
-			$('#searchProduct').on('input', function() {
-				let value = $(this).val().toLowerCase();
-				$('.product-item').filter(function() {
-					let name = $(this).data('name');
-					$(this).toggle(name.includes(value));
-				});
+			$('#searchProduct').on('input', function () {
+				clearTimeout(searchTimer);
+				state.search = $(this).val();
+
+				searchTimer = setTimeout(function () {
+					state.page = 1;
+					if (state.categoryId) loadProducts();
+				}, 350);
 			});
+
+			$('#sortProduct').on('change', function () {
+				state.sort = $(this).val();
+				state.page = 1;
+				if (state.categoryId) loadProducts();
+			});
+
+			switchMode('prabayar');
 		});
 
-		function resetFormUI() {
-			// $('#target').val('');
-			// $('#customer-name-result').hide();
-			// $('#bill-details').addClass('d-none');
-			// $('.category-card').removeClass('active');
+		function switchMode(mode) {
+			state.mode = mode;
+			state.page = 1;
 
-			// Reset state grid product
-			$('#product-code').val('');
-			$('#product-grid-container').html(`
-				<div class="col-12 text-center text-muted py-5 border rounded-3 bg-light" id="empty-product-state">
-					<i class="fas fa-box-open fa-3x mb-3 opacity-25"></i>
-					<p class="mb-0 small">Silahkan pilih Kategori / Pelanggan di sebelah kanan terlebih dahulu.</p>
-				</div>
-			`);
+			$('#transaction_type').val(mode);
 
-			if (currentMode.includes('pascabayar')) {
-				$('#box-custom-price').hide();
-				$('#btn-submit').addClass('d-none');
-				$('#btn-check-bill').removeClass('d-none');
-				$('#game-brand-box').addClass('d-none');
-				$('#game-input-box').addClass('d-none');
-				$('#standard-input-box').removeClass('d-none');
-			} else {
-				$('#box-custom-price').show();
-				$('#btn-submit').removeClass('d-none').text('PROSES TRANSAKSI');
-				$('#btn-check-bill').addClass('d-none');
-				$('#game-brand-box').addClass('d-none');
-				$('#game-input-box').addClass('d-none');
-				$('#standard-input-box').removeClass('d-none');
-			}
+			$('#tab-prabayar').toggleClass('active', mode === 'prabayar');
+			$('#tab-pascabayar').toggleClass('active', mode === 'pascabayar');
+
+			$('#category-helper-text').text(
+				mode === 'pascabayar'
+					? 'Pilih kategori tagihan seperti PLN, PDAM, BPJS, dan sejenisnya.'
+					: 'Pilih kategori produk prabayar seperti games, pulsa, token PLN, e-money, dan voucher.'
+			);
+
+			$('.category-item').each(function () {
+				const category = {
+					name: $(this).data('name') ?? '',
+					slug: $(this).data('slug') ?? '',
+					parent: $(this).data('parent') ?? '',
+				};
+
+				const matchPasca = isPascaCategory(category);
+				$(this).toggleClass('d-none', mode === 'pascabayar' ? !matchPasca : matchPasca);
+			});
+
+			resetSelection();
+			renderInitialProductState();
+		}
+
+		function isPascaCategory(category = {}) {
+			const name = String(category.name ?? '').toLowerCase();
+			const slug = String(category.slug ?? '').toLowerCase();
+			const parent = String(category.parent ?? '').toLowerCase();
+
+			const prepaidSlugs = [
+				'token-pln',
+				'pulsa',
+				'operator-seluler',
+				'data',
+				'games',
+				'e-money',
+				'voucher',
+				'streaming'
+			];
+
+			const pascaSlugs = [
+				'pln',
+				'pdam',
+				'bpjs',
+				'telkom',
+				'internet',
+				'tv-kabel',
+				'multifinance',
+				'pbb',
+				'pgn',
+				'samsat',
+				'tagihan-ppob',
+				'pln-pascabayar',
+				'tagihan-pln',
+				'listrik-pasca',
+			];
+
+			if (prepaidSlugs.includes(slug)) return false;
+			if (pascaSlugs.includes(slug)) return true;
+
+			return name.includes('tagihan') ||
+				name.includes('pascabayar') ||
+				slug.includes('tagihan') ||
+				slug.includes('pascabayar') ||
+				slug.includes('pasca') ||
+				parent.includes('tagihan') ||
+				parent.includes('pascabayar') ||
+				parent.includes('pasca');
 		}
 
 		function selectCategory(el, category) {
-			currentCategoryId = category.id;
-			currentCategory = category;
-
-			if($(el).data('slug') == currentSlug) return;
+			state.category = category;
+			state.categoryId = category.id;
+			state.categorySlug = category.slug;
+			state.typeCategoryId = null;
+			state.brandId = null;
+			state.product = null;
+			state.page = 1;
+			state.inquiryRefId = null;
 
 			$('#hidden_category_id').val(category.id);
+			$('#category-slug').val(category.slug);
+			$('#product-code').val('');
+			$('#inquiry_ref_id').val('');
 
 			$('.category-card').removeClass('active');
 			$(el).addClass('active');
 
-			// 🔥 pakai slug, bukan id
-			let conf = config[category.slug] || {
-				label: 'Nomor Tujuan',
-				icon: 'fa-phone',
-				placeholder: 'Masukan Nomor'
+			applyTargetConfig(category);
+			resetCustomerFields();
+			resetBill();
+			renderSummaryEmpty();
+			loadProducts();
+			generateProviderFilter(category.id);
+		}
+
+		function applyTargetConfig(category) {
+			// const conf = config[slug] || {
+			// 	label: 'Nomor / ID Tujuan',
+			// 	icon: 'fa-phone-alt',
+			// 	placeholder: 'Masukan nomor atau ID tujuan'
+			// };
+
+			// $('#label-target').text(conf.label);
+			// $('#target').attr('placeholder', conf.placeholder);
+			// $('#icon-target').attr('class', 'fas ' + conf.icon);
+
+			// if (slug === 'games') {
+			// 	$('#standard-input-box').addClass('d-none');
+			// 	$('#game-input-box').removeClass('d-none');
+			// 	$('#game_user_id, #game_server_id').prop('disabled', false);
+			// } else {
+			// 	$('#standard-input-box').removeClass('d-none');
+			// 	$('#game-input-box').addClass('d-none');
+			// 	$('#game_user_id, #game_server_id').prop('disabled', true);
+			// }
+
+			const slug = String(category?.slug ?? '').toLowerCase();
+
+			const conf = config[slug] || {
+				label: 'Nomor / ID Tujuan',
+				icon: 'fa-phone-alt',
+				placeholder: 'Masukan nomor atau ID tujuan'
 			};
 
 			$('#label-target').text(conf.label);
 			$('#target').attr('placeholder', conf.placeholder);
 			$('#icon-target').attr('class', 'fas ' + conf.icon);
 
-			currentCategories = null
-			currentBrands = null
+			if (isGameCategory(category)) {
+				$('#label-target').text('ID Player');
 
-			toggleInputType(category.slug)
-
-			loadProducts({ identifier: category.id, page: currentPage })
-			generateProviderFilter(category.id)
-			// resetFormUI()
-			// $('#game_user_id, #game_server_id').val('');
-			currentSlug = category?.slug
-			$resultDiv.slideUp().html('')
-			$('#customer-name-input').val('')
-		}
-
-		function toggleInputType(type) {
-			const icon = $('#icon-target');
-
-			if (type === 'games') {
 				$('#standard-input-box').addClass('d-none');
+				$('#target').prop('disabled', true);
+
 				$('#game-input-box').removeClass('d-none');
-				$('#game-brand-box').removeClass('d-none');
-			} else {
-				$('#standard-input-box').removeClass('d-none');
-				$('#game-input-box').addClass('d-none');
-				$('#game-brand-box').addClass('d-none');
+				$('#game_user_id').prop('disabled', false);
+				$('#game_server_id').prop('disabled', false);
 
-				// 🔥 Default icon
-				icon.removeClass()
-
-				// ⚡ Kalau PLN
-				if (type === 'token-pln') {
-					icon.addClass('fas fa-bolt text-muted')
-				} else if (type === 'voucher') {
-					icon.addClass('fas fa-ticket-alt text-muted')
-				} else if (type === 'e-wallet') {
-					icon.addClass('fas fa-wallet text-muted')
-				} else {
-					icon.addClass('fas fa-phone-alt text-muted')
-				}
+				$('#game_user_id').attr('placeholder', 'User ID');
+				$('#game_server_id').attr('placeholder', 'Zone ID');
+				return;
 			}
+
+			$('#standard-input-box').removeClass('d-none');
+			$('#target').prop('disabled', false);
+
+			$('#game-input-box').addClass('d-none');
+			$('#game_user_id').prop('disabled', true);
+			$('#game_server_id').prop('disabled', true);
 		}
 
-		function formatUser(user) {
-			if (!user.id) return user.text;
-			const balance = $(user.element).data('balance') ?? '-';
-			const isSelf  = $(user.element).data('self');
-			return `<div class="d-flex justify-content-between align-items-center"><span class="${isSelf ? 'fw-bold text-info' : ''}">${isSelf ? '★ ' : ''}${user.text}</span><span class="badge bg-success bg-opacity-10 text-success rounded-pill">${balance}</span></div>`;
-		}
-
-		$(document).on('click', '.product-radio', function () {
-			if ($(this).hasClass('was-checked')) {
-				$(this).prop('checked', false);
-				$(this).removeClass('was-checked');
-			} else {
-				$('.product-radio').removeClass('was-checked'); // reset semua
-				$(this).addClass('was-checked');
-			}
-		});
-
-		// ================================================================================================
-		// FUNGSI LOAD PRODUCTS (DIUBAH MENJADI RENDER GRID)
-		// function loadProducts(identifier, isBrandMode = false, page = 1) {
-		function loadProducts(json) {
-			$('#product-pagination').empty()
-
+		function loadProducts() {
 			const grid = $('#product-grid-container');
+			const role = $('#user-id').find(':selected').data('role');
+
+			$('#product-pagination').empty();
 			grid.html(loadingHTML());
-
-			page = json.page ?? 1;
-			const role = $('#user-id').find(':selected').data('role')
-
-			let payload = {
-				mode: currentMode,
-				category_id: json.identifier,
-				categories: currentCategories,
-				brands: currentBrands
-			};
 
 			$.ajax({
 				url: "{{ route('admin.products.items.getProductsByCategory') }}",
 				type: "POST",
-				data: { ...payload, page },
+				data: {
+					mode: state.mode,
+					category_id: state.categoryId,
+					categories: state.typeCategoryId,
+					brands: state.brandId,
+					search: state.search,
+					sort: state.sort,
+					page: state.page
+				},
 				success: function(res) {
-					const products = res.data.data;
+					const payload = res.data;
+					const products = payload.data ?? [];
 
-
-					if (!products.length) return grid.html(emptyHTML('Produk tidak tersedia'));
+					if (!products.length) {
+						grid.html(emptyHTML('Produk tidak tersedia untuk filter ini.'));
+						return;
+					}
 
 					grid.empty();
 
-					products.forEach(p => {
-						// let price = currentMode === 'prabayar'
-						// 	? formatRupiah(p.selling_price)
-						// 	: 'Cek Tagihan';
-						let price = formatRupiah(role == 'admin' ? p.price : p.selling_price)
-
-						let provider = p.brand?.name ?? '-';
-
-						let categories = (p.categories || [])
-							.map(c => c.name)
-							.join(', ');
-
-						let disabled = (p.status == 0) ? 'locked-item' : '';
-
-						grid.append(`
-							<div class="col-6 col-md-4 col-lg-3 product-item"
-								data-name="${p.product_name.toLowerCase()}"
-								data-categories="${provider.toLowerCase()}">
-
-								<input type="radio" class="btn-check product-radio"
-									name="product_sku_radio"
-									id="prod_${p.id}"
-									value="${p.id}"
-									data-type="${p.brand.name.toLowerCase().replace(/\s+/g, '-')}"
-									${disabled ? 'disabled' : ''}>
-
-								<label class="product-card p-3 h-100 ${disabled}" for="prod_${p.id}">
-
-									<div class="d-flex justify-content-between align-items-start mb-2">
-										<small class="text-muted">${provider}</small>
-										<small class="${p.status ? 'text-success' : 'text-danger'}">
-											${p.status ? 'Ready' : 'Gangguan'}
-										</small>
-									</div>
-
-									<div class="fw-bold mb-3 product-name" style="font-size: 0.85rem; color: #334155; line-height: 1.3;">${p.product_name}</div>
-
-									<div class="mt-auto">
-										<div class="price-box p-2 mb-2 price-box">
-											<span class="fw-bold text-success price-text" style="font-size: 0.85rem;">${price}</span>
-										</div>
-									</div>
-
-								</label>
-							</div>
-						`);
+					products.forEach(product => {
+						grid.append(renderProductCard(product, role));
 					});
 
-					// pilih produk
-					// $('.product-radio').change(function () {
-					// 	$('#product-code').val($(this).val());
-					// });
-
-					// generateProviderFilter(products)
-					renderPagination(res.data);
-
-					setTimeout(() => {
-						document.querySelector('#product-grid-container')
-							.scrollIntoView({ behavior: 'smooth', block: 'start' });
-					}, 100)
+					renderPagination(payload);
+				},
+				error: function () {
+					grid.html(emptyHTML('Gagal memuat produk.'));
 				}
 			});
 		}
 
-		$(document).on('change', '.product-item .product-radio', function () {
-			$('#product-code').val($(this).val());
-			toggleGameInputs(!!(currentCategory?.slug == 'games'))
-			// if (currentCategory?.slug == 'games') {
+		function renderProductCard(product, role) {
+			const provider = product.brand?.name ?? '-';
+			const isReady = Number(product.status) === 1;
+			const priceValue = role === 'admin' ? product.price : product.selling_price;
+			const priceText = state.mode === 'pascabayar' ? 'Cek Tagihan' : money(priceValue);
+			const cleanName = cleanProductName(product.product_name, provider);
+			const selected = Number(state.product?.id) === Number(product.id);
+
+						// onclick='selectProduct(${JSON.stringify(product).replace(/'/g, '&#39;')})'>
+							// <i class="fas ${selected ? 'fa-check-circle text-primary' : 'fa-circle text-light'}"></i>
+			return `
+				<div class="col-6 col-md-4 col-xl-3 product-item">
+					<button type="button"
+						class="product-card w-100 text-start ${selected ? 'selected' : ''} ${!isReady ? 'locked' : ''}"
+						${!isReady ? 'disabled' : ''}
+						onclick='selectProduct(this, ${JSON.stringify(product).replace(/'/g, '&#39;')})'>
+
+						<div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+							<span class="product-status ${isReady ? 'ready' : 'down'}">
+								${isReady ? 'Ready' : 'Gangguan'}
+							</span>
+							<i data-selected-icon class="fas ${selected ? 'fa-check-circle text-primary' : 'fa-circle text-light'}"></i>
+						</div>
+
+						<div class="product-name">${escapeHtml(cleanName)}</div>
+						<div class="product-meta">${escapeHtml(provider)}${state.category?.name ? ' • ' + escapeHtml(state.category.name) : ''}</div>
+
+						<div class="product-price">${priceText}</div>
+					</button>
+				</div>
+			`;
+		}
+
+		function selectProduct(el, product) {
+			state.product = product;
+			state.inquiryRefId = null;
+
+			$('#product-code').val(product.id);
+			$('#inquiry_ref_id').val('');
+
+			resetBill();
+			renderSelectedProduct();
+			markSelectedProductCard(el);
+			applyGameProductInput(product);
+			// $('#product-code').val(product.id);
+			// $('#inquiry_ref_id').val('');
+
+			// resetBill();
+			// renderSelectedProduct();
+			// loadProducts();
+		}
+
+		function applyGameProductInput(product) {
+			if (!isGameCategory()) return;
+
+			$('#standard-input-box').addClass('d-none');
+			$('#target').prop('disabled', true);
+
+			$('#game-input-box').removeClass('d-none');
+			$('#game_user_id').prop('disabled', false);
+			$('#game_server_id').prop('disabled', false);
+
+			$('#game_server_id').closest('.col-5').removeClass('d-none');
+			$('#game_user_id').closest('.col-7').removeClass('col-7').addClass('col-7');
+
+			$('#label-target').text('ID Player & Zone ID');
+
+
+			// if (gameNeedsServer(product)) {
+			// 	$('#game_server_id').prop('disabled', false);
+			// 	$('#game_server_id').closest('.col-5').removeClass('d-none');
+			// 	$('#game_user_id').closest('.col-7').removeClass('col-12').addClass('col-7');
+			// 	$('#label-target').text('ID Player & Zone ID');
+			// } else {
+			// 	$('#game_server_id').val('').prop('disabled', true);
+			// 	$('#game_server_id').closest('.col-5').addClass('d-none');
+			// 	$('#game_user_id').closest('.col-7').removeClass('col-7').addClass('col-12');
+			// 	$('#label-target').text('ID Player');
 			// }
-		});
+		}
+
+		function markSelectedProductCard(el) {
+			$('.product-card').removeClass('selected');
+
+			$('.product-card [data-selected-icon]')
+				.removeClass('fa-check-circle text-primary')
+				.addClass('fa-circle text-light');
+
+			$(el).addClass('selected');
+
+			$(el).find('[data-selected-icon]')
+				.removeClass('fa-circle text-light')
+				.addClass('fa-check-circle text-primary');
+		}
+
+		function renderSelectedProduct() {
+			const role = $('#user-id').find(':selected').data('role');
+			const product = state.product;
+			const provider = product.brand?.name ?? '-';
+			const price = state.mode === 'pascabayar'
+				? 'Cek tagihan dahulu'
+				: money(role === 'admin' ? product.price : product.selling_price);
+
+			$('#summary-empty').addClass('d-none');
+			$('#summary-content').removeClass('d-none');
+
+			$('#summary-mode').text(state.mode === 'pascabayar' ? 'Pascabayar' : 'Prabayar');
+			$('#summary-product-name').text(cleanProductName(product.product_name, provider));
+			$('#summary-product-meta').text(`${provider} • ${state.category?.name ?? '-'}`);
+			$('#summary-product-price').text(price);
+
+			$('#box-custom-price').toggleClass('d-none', state.mode === 'pascabayar');
+
+			if (state.mode === 'pascabayar') {
+				$('#btn-check-bill').removeClass('d-none');
+				$('#btn-submit').addClass('d-none');
+			} else {
+				$('#btn-check-bill').addClass('d-none');
+				$('#btn-submit')
+					.removeClass('d-none')
+					.html('<i class="fas fa-paper-plane me-2"></i> Proses Transaksi');
+			}
+		}
+
+		function renderSummaryEmpty() {
+			$('#summary-empty').removeClass('d-none');
+			$('#summary-content').addClass('d-none');
+		}
 
 		function generateProviderFilter(parentId) {
-			let $categories = $('#categories-filter-list');
-			let $brands = $('#brands-filter-list');
-			let container = $('#container-filter');
+			const container = $('#container-filter');
+			const categoriesWrapper = $('#categories-filter-wrapper');
+			const brandsWrapper = $('#brands-filter-wrapper');
+			const categoriesList = $('#categories-filter-list');
+			const brandsList = $('#brands-filter-list');
 
-			$categories.empty();
-			$brands.empty()
-
-			console.log(parentId);
+			container.addClass('d-none');
+			categoriesWrapper.addClass('d-none');
+			brandsWrapper.addClass('d-none');
+			categoriesList.empty();
+			brandsList.empty();
 
 			$.ajax({
 				url: "{{ route('admin.products.categories.category-by-parent') }}",
-				data: { parent_id: parentId},
-				success: function(r) {
-					console.log(r);
+				data: { parent_id: parentId },
+				success: function(res) {
+					const data = res.data ?? {};
+					const categories = data.categories ?? [];
+					const brands = data.brands ?? [];
 
-					if (!r) return container.addClass('d-none');
-
-					const { data: { categories, brands } } = r
+					if (!categories.length && !brands.length) return;
 
 					container.removeClass('d-none');
 
-					const categoriesIsOne = categories.length == 1
+					if (categories.length > 1) {
+						categoriesWrapper.removeClass('d-none');
+						categoriesList.append(`<button type="button" class="filter-chip active" data-id="">Semua</button>`);
 
-					if (!categoriesIsOne) $categories.append(`<div class="categories-chip active" data-categories="all">SEMUA</div>`);
-
-					categories.forEach(c => {
-						$categories.append(`<div class="categories-chip ${categoriesIsOne ? 'active' : ''}" data-categories="${c.name.toLowerCase()}" data-categories-id="${c.id}">${c.name}</div>`);
-					});
-
-					if (brands.length > 0) {
-						if (brands.length > 1) $brands.append(`<div class="brands-chip active" data-brands="all">SEMUA</div>`);
-
-						brands.forEach(b => {
-							$brands.append(`<div class="brands-chip ${brands.length == 1 ? 'active' : ''}" data-brands="${b.name.toLowerCase()}" data-brands-id="${b.id}">${b.name}</div>`);
+						categories.forEach(item => {
+							categoriesList.append(`<button type="button" class="filter-chip" data-id="${item.id}">${escapeHtml(item.name)}</button>`);
 						});
 					}
 
-					$('.categories-chip').click(function () {
-						let val = $(this).data('categories');
-						let id = $(this).data('categories-id')
-						currentCategories = id ?? null
+					if (brands.length > 0) {
+						brandsWrapper.removeClass('d-none');
+						brandsList.append(`<button type="button" class="filter-chip active" data-id="">Semua</button>`);
 
-						$('.categories-chip').removeClass('active');
-						$(this).addClass('active');
-
-						currentPage = 1
-						loadProducts({ identifier: parentId, page: currentPage })
-
-						// $('.product-item').each(function () {
-						// 	let p = $(this).data('categories');
-
-						// 	$(this).toggle(val === 'all' || p === val);
-						// });
-					});
-					$('.brands-chip').click(function () {
-						let val = $(this).data('brands');
-						let id = $(this).data('brands-id')
-						currentBrands = id ?? null
-
-						$('.brands-chip').removeClass('active');
-						$(this).addClass('active');
-
-						currentPage = 1
-						loadProducts({ identifier: parentId, page: currentPage })
-
-						// $('.product-item').each(function () {
-						// 	let p = $(this).data('brands');
-
-						// 	$(this).toggle(val === 'all' || p === val);
-						// });
-					});
+						brands.forEach(item => {
+							brandsList.append(`<button type="button" class="filter-chip" data-id="${item.id}">${escapeHtml(item.name)}</button>`);
+						});
+					}
 				}
-			})
+			});
+		}
 
+		$(document).on('click', '#categories-filter-list .filter-chip', function () {
+			$('#categories-filter-list .filter-chip').removeClass('active');
+			$(this).addClass('active');
 
-			// let providers = [...new Set(products.map(p => p.brand?.name).filter(Boolean))];
+			state.typeCategoryId = $(this).data('id') || null;
+			state.page = 1;
+			state.product = null;
+			$('#product-code').val('');
+			renderSummaryEmpty();
+			resetBill();
+			loadProducts();
+		});
 
-			// if (!providers.length) return container.addClass('d-none');
+		$(document).on('click', '#brands-filter-list .filter-chip', function () {
+			$('#brands-filter-list .filter-chip').removeClass('active');
+			$(this).addClass('active');
 
-			// container.removeClass('d-none');
+			state.brandId = $(this).data('id') || null;
+			state.page = 1;
+			state.product = null;
+			$('#product-code').val('');
+			renderSummaryEmpty();
+			resetBill();
+			loadProducts();
+		});
 
-			// list.append(`<div class="provider-chip active" data-provider="all">SEMUA</div>`);
+		function inquiryBill() {
+			const productCode = $('#product-code').val();
+			const target = $('#target').val();
+			const userId = $('#user-id').val();
 
-			// providers.forEach(p => {
-			// 	list.append(`<div class="provider-chip" data-provider="${p.toLowerCase()}">${p}</div>`);
-			// });
+			if (!productCode) {
+				return Swal.fire('Error', 'Silahkan pilih produk tagihan terlebih dahulu.', 'error');
+			}
 
-			// $('.provider-chip').click(function () {
-			// 	let val = $(this).data('provider');
+			if (!target) {
+				return Swal.fire('Error', 'Nomor pelanggan wajib diisi.', 'error');
+			}
 
-			// 	$('.provider-chip').removeClass('active');
-			// 	$(this).addClass('active');
+			$.ajax({
+				url: "{{ route('admin.transactions.inquiry') }}",
+				type: "POST",
+				data: {
+					product_code: productCode,
+					target: target,
+					user_id: userId
+				},
+				beforeSend: function() {
+					$('#btn-check-bill')
+						.prop('disabled', true)
+						.html('<i class="fas fa-spinner fa-spin me-2"></i> Mengecek...');
 
-			// 	$('.product-item').each(function () {
-			// 		let p = $(this).data('provider');
+					resetBill();
+				},
+				success: function(res) {
+					if (res.meta.code !== 200) {
+						return Swal.fire('Gagal', res.meta.message ?? 'Tagihan tidak ditemukan.', 'error');
+					}
 
-			// 		$(this).toggle(val === 'all' || p === val);
-			// 	});
-			// });
+					const data = res.data ?? {};
+
+					$('#bill-name').text(data.customer_name ?? '-');
+					$('#bill-period').text(normalizeBillDesc(data.desc));
+					$('#bill-amount').text(money(data.amount ?? 0));
+					$('#bill-admin').text(money(data.admin_fee ?? 0));
+					$('#bill-total').text(money(data.total_pay ?? 0));
+
+					$('#inquiry_ref_id').val(data.ref_id);
+					$('#bill_amount_value').val(data.amount ?? 0);
+					$('#bill_admin_fee_value').val(data.admin_fee ?? 0);
+					$('#bill_total_pay_value').val(data.total_pay ?? 0);
+
+					state.inquiryRefId = data.ref_id;
+
+					$('#bill-details').removeClass('d-none');
+					$('#btn-check-bill').addClass('d-none');
+					$('#btn-submit')
+						.removeClass('d-none')
+						.html('<i class="fas fa-money-bill-wave me-2"></i> Bayar Tagihan');
+				},
+				error: function(xhr) {
+					const msg = xhr.responseJSON?.meta?.message || xhr.responseJSON?.message || 'Gagal mengecek tagihan.';
+					Swal.fire('Error', msg, 'error');
+				},
+				complete: function() {
+					$('#btn-check-bill')
+						.prop('disabled', false)
+						.html('<i class="fas fa-search me-2"></i> Cek Tagihan');
+				}
+			});
+		}
+
+		function storeTransaction() {
+			const form = $('#form-transaction');
+
+			if (!state.category) {
+				return Swal.fire('Peringatan', 'Silahkan pilih kategori terlebih dahulu.', 'warning');
+			}
+
+			if (!$('#product-code').val()) {
+				return Swal.fire('Peringatan', 'Silahkan pilih produk terlebih dahulu.', 'warning');
+			}
+
+			if (state.mode === 'pascabayar' && !$('#inquiry_ref_id').val()) {
+				return Swal.fire('Peringatan', 'Silahkan lakukan Cek Tagihan terlebih dahulu.', 'warning');
+			}
+
+			Swal.fire({
+				title: 'Konfirmasi',
+				text: state.mode === 'pascabayar'
+					? 'Pastikan data tagihan sudah sesuai. Saldo akan langsung terpotong.'
+					: 'Proses transaksi sekarang?',
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonText: 'Ya, Proses',
+				cancelButtonText: 'Batal',
+			}).then((result) => {
+				if (!result.isConfirmed) return;
+
+				$.ajax({
+					url: form.attr('action'),
+					type: 'POST',
+					data: form.serialize(),
+					beforeSend: function() {
+						$('#btn-submit')
+							.prop('disabled', true)
+							.html('<i class="fas fa-spinner fa-spin me-2"></i> Memproses...');
+					},
+					success: function(response) {
+						Swal.fire('Sukses', response?.meta?.message || 'Transaksi berhasil.', 'success')
+							.then(() => window.location.reload());
+					},
+					error: function(xhr) {
+						const msg = xhr.responseJSON?.meta?.message || xhr.responseJSON?.message || 'Terjadi kesalahan.';
+						Swal.fire('Gagal', msg, 'error');
+					},
+					complete: function() {
+						$('#btn-submit').prop('disabled', false);
+
+						if (state.mode === 'pascabayar') {
+							$('#btn-submit').html('<i class="fas fa-money-bill-wave me-2"></i> Bayar Tagihan');
+						} else {
+							$('#btn-submit').html('<i class="fas fa-paper-plane me-2"></i> Proses Transaksi');
+						}
+					}
+				});
+			});
+		}
+
+		function getUsername(self) {
+			const input = $(self);
+			const type = input.data('type');
+			let currentVal = input.val();
+
+			if (/[^0-9]/.test(currentVal)) {
+				currentVal = currentVal.replace(/[^0-9]/g, '');
+				input.val(currentVal);
+			}
+
+			clearTimeout(typingTimer);
+
+			const category = state.categorySlug ?? '';
+			const isPln = category === 'token-pln';
+			const isGames = category === 'games';
+
+			if (isPln && currentVal.length >= 11) {
+				typingTimer = setTimeout(function () {
+					checkUsername({ category, target: currentVal });
+				}, doneTypingInterval);
+			}
+
+			if (isGames) {
+				const userId = $('#game_user_id').val();
+				const serverId = $('#game_server_id').val();
+
+				if (userId.length >= 5 && serverId.length >= 3) {
+					typingTimer = setTimeout(function () {
+						checkUsername({
+							category,
+							code_game: state.product?.brand?.name?.toLowerCase().replace(/\s+/g, '-'),
+							user_id: userId,
+							server_id: serverId,
+						});
+					}, doneTypingInterval);
+				}
+			}
+		}
+
+		function checkUsername(data) {
+			const resultDiv = $('#customer-name-result');
+
+			$.ajax({
+				url: "{{ route('api.provider.check-username') }}",
+				type: "POST",
+				data: data,
+				beforeSend: function() {
+					resultDiv
+						.html('<i class="fas fa-spinner fa-spin me-1"></i> Mengecek data...')
+						.removeClass('text-success text-danger')
+						.addClass('text-muted')
+						.slideDown();
+				},
+				success: function(response) {
+					if (response?.meta?.code != 200) {
+						return resultDiv
+							.html('<i class="fas fa-times-circle me-1"></i> ' + (response?.data?.message ?? 'Data tidak ditemukan.'))
+							.removeClass('text-success text-muted')
+							.addClass('text-danger');
+					}
+
+					const dataResponse = response.data;
+					let name = dataResponse.name ?? dataResponse;
+
+					if (dataResponse.segment_power) {
+						name += ` | ${dataResponse.segment_power}`;
+					}
+
+					resultDiv
+						.html('<i class="fas fa-check-circle me-1"></i> ' + name)
+						.removeClass('text-danger text-muted')
+						.addClass('text-success');
+
+					$('#customer-name-input').val(name);
+				},
+				error: function(xhr) {
+					const msg = xhr.responseJSON?.meta?.message || 'User tidak ditemukan.';
+					resultDiv
+						.html('<i class="fas fa-exclamation-triangle me-1"></i> ' + msg)
+						.removeClass('text-success text-muted')
+						.addClass('text-danger')
+						.slideDown();
+				}
+			});
 		}
 
 		function renderPagination(meta) {
-			let container = $('#product-pagination')
+			const container = $('#product-pagination');
 
-			if (!meta || meta.last_page <= 1) return;
+			if (!meta || meta.last_page <= 1) {
+				container.empty();
+				return;
+			}
 
-			let current = meta.current_page;
-			let last = meta.last_page;
-			let delta = 2; // jumlah halaman di sekitar current
-
+			const current = meta.current_page;
+			const last = meta.last_page;
+			const delta = 2;
 			let range = [];
 			let rangeWithDots = [];
-			let l;
+			let previous;
 
 			for (let i = 1; i <= last; i++) {
-				if (
-					i === 1 ||
-					i === last ||
-					(i >= current - delta && i <= current + delta)
-				) {
+				if (i === 1 || i === last || (i >= current - delta && i <= current + delta)) {
 					range.push(i);
 				}
 			}
 
 			for (let i of range) {
-				if (l) {
-					if (i - l === 2) {
-						rangeWithDots.push(l + 1);
-					} else if (i - l !== 1) {
-						rangeWithDots.push('...');
-					}
+				if (previous) {
+					if (i - previous === 2) rangeWithDots.push(previous + 1);
+					else if (i - previous !== 1) rangeWithDots.push('...');
 				}
 				rangeWithDots.push(i);
-				l = i;
+				previous = i;
 			}
 
 			let html = `<div class="d-flex justify-content-center gap-2 flex-wrap">`;
 
-			// Prev
 			if (current > 1) {
 				html += `<button type="button" class="btn btn-sm btn-light" onclick="changePage(${current - 1})">«</button>`;
 			}
@@ -852,7 +1438,6 @@
 				}
 			});
 
-			// Next
 			if (current < last) {
 				html += `<button type="button" class="btn btn-sm btn-light" onclick="changePage(${current + 1})">»</button>`;
 			}
@@ -863,254 +1448,189 @@
 		}
 
 		function changePage(page) {
-			if (currentPage == page) return;
-			currentPage = page;
+			if (state.page === page) return;
 
-			// if (currentCategory.includes('games')) {
-			// 	let brand = $('#game-brand-select').val();
-			// 	loadProducts(brand, true, page);
-			// } else {
-				// loadProducts(currentCategoryId, false, page);
-				loadProducts({ identifier: currentCategoryId, page: page })
-			// }
-		}
-		// ================================================================================================
-
-		async function loadGameBrands(category) {
-			var brandSelect = $('#game-brand-select');
-			brandSelect.empty().append('<option value="##" selected disabled>LOADING GAME...</option>');
-			brandSelect.prop('disabled', true);
-
-			const {status, data: {data}, data: {meta}} = await postRequest("{{ route('admin.products.items.get-brands-by-category') }}", { category: category });
-
-			if (status !== 200) return brandSelect.empty().append('<option value="###" selected disabled>-- INTERNAL SERVER ERROR --</option>');
-			if (data.length == 0) return brandSelect.empty().append('<option value="###" selected disabled>-- GAME BELUM TERSEDIA --</option>');
-
-			brandSelect.empty().append('<option value="#" selected disabled>-- PILIH GAME --</option>');
-			$.each(data, function(key, value) {
-				brandSelect.append(`<option value="${value.brand.id}" data-type="${value.brand.name.toLowerCase().replace(/\s+/g, '-')}">${value.brand.name}</option>`);
-			});
-			brandSelect.prop('disabled', false);
-			brandSelect.trigger('change');
+			state.page = page;
+			loadProducts();
 		}
 
-		function inquiryBill() {
-			let code = $('#product-code').val(); // Mengambil id dari hidden input grid
-			let target = $('#target').val();
-			let userId = $('#user-id').val();
+		function resetSelection() {
+			state.category = null;
+			state.categoryId = null;
+			state.categorySlug = null;
+			state.typeCategoryId = null;
+			state.brandId = null;
+			state.product = null;
+			state.inquiryRefId = null;
 
-			if(!code) return Swal.fire('Error', 'Silahkan pilih layanan/produk terlebih dahulu.', 'error');
+			$('#hidden_category_id').val('');
+			$('#category-slug').val('');
+			$('#product-code').val('');
+			$('#inquiry_ref_id').val('');
+			$('.category-card').removeClass('active');
+			$('#container-filter').addClass('d-none');
+			$('#categories-filter-list, #brands-filter-list').empty();
 
-			$.ajax({
-				url: "{{ route('admin.transactions.inquiry') }}",
-				type: "POST",
-				data: { product_code: code, target: target, user_id: userId },
-				beforeSend: function() {
-					$('#btn-check-bill').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Cek Tagihan...');
-					$billDetail.addClass('d-none');
-				},
-				success: function(res) {
-					if(res.meta.code === 200) {
-						let data = res.data;
-						$('#bill-name').text(data.customer_name);
-						$('#bill-period').text(data.desc || '-');
-						$('#bill-amount').text(formatRupiah(data.amount));
-						$('#bill-admin').text(formatRupiah(data.admin_fee));
-						$('#bill-total').text(formatRupiah(data.total_pay));
-						$('#inquiry_ref_id').val(data.ref_id);
-
-						$billDetail.removeClass('d-none');
-						$('#btn-check-bill').addClass('d-none');
-						$('#btn-submit').removeClass('d-none').text('Bayar Tagihan Sekarang');
-					} else {
-						Swal.fire('Gagal', res.message, 'error');
-					}
-				},
-				error: function(xhr) {
-					let msg = xhr.responseJSON?.message || 'Gagal mengecek tagihan';
-					Swal.fire('Error', msg, 'error');
-				},
-				complete: function() {
-					$('#btn-check-bill').prop('disabled', false).html('<i class="fas fa-search me-2"></i> CEK TAGIHAN');
-				}
-			});
+			resetCustomerFields();
+			resetBill();
+			renderSummaryEmpty();
 		}
 
-		function storeTransaction() {
-			var form = $('#form-transaction');
-			let code = $('#product-code').val();
-
-			if(!code) return Swal.fire('Peringatan', 'Silahkan pilih layanan/produk terlebih dahulu.', 'warning');
-
-			if (currentMode === 'pascabayar' && $('#inquiry_ref_id').val() === '') {
-				return Swal.fire('Peringatan', 'Silahkan lakukan Cek Tagihan terlebih dahulu!', 'warning');
-			}
-
-			Swal.fire({
-				title: 'Konfirmasi',
-				text: (currentMode === 'prabayar') ? "Proses transaksi sekarang?" : "Pastikan data tagihan sudah sesuai. Saldo akan terpotong.",
-				icon: 'question',
-				showCancelButton: true,
-				confirmButtonText: 'Ya, Proses',
-			}).then((result) => {
-				if (result.isConfirmed) {
-					$.ajax({
-						url: form.attr('action'),
-						type: "POST",
-						data: form.serialize() + '&category=' + encodeURIComponent(currentCategory.slug),
-						beforeSend: function() {
-							// $('#btn-submit').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Memproses...');
-						},
-						success: function(response) {
-							Swal.fire('Sukses', response?.meta?.message || 'Transaksi Berhasil', 'success')
-							.then(() => window.location.reload());
-						},
-						error: function(xhr) {
-							$('#btn-submit').prop('disabled', false).html('PROSES TRANSAKSI');
-							let msg = xhr.responseJSON?.meta?.message || 'Terjadi Kesalahan';
-							Swal.fire('Gagal', msg, 'error');
-						}
-					});
-				}
-			});
+		function resetCustomerFields() {
+			$('#target').val('');
+			$('#game_user_id').val('').prop('disabled', true);
+			$('#game_server_id').val('').prop('disabled', true);
+			$('#customer-name-input').val('');
+			$('#customer-name-result').hide().html('');
+			$('#standard-input-box').removeClass('d-none');
+			$('#game-input-box').addClass('d-none');
 		}
 
-		function toggleGameInputs(show) {
-			if(show) {
-				$('#game_user_id, #game_server_id').attr('disabled', false).removeClass('cursor-disabled');
-			} else {
-				$('#game_user_id, #game_server_id').attr('disabled', true).addClass('cursor-disabled');
-			}
+		function resetBill() {
+			$('#bill-details').addClass('d-none');
+			$('#bill-name, #bill-period, #bill-amount, #bill-admin, #bill-total').text('-');
+			$('#inquiry_ref_id').val('');
+			$('#bill_amount_value, #bill_admin_fee_value, #bill_total_pay_value').val('');
 		}
 
-		function getUsername(self) {
-			const $this = $(self);
-			const type = $this.data('type');
-			let currentVal = $this.val();
+		function renderInitialProductState() {
+			$('#product-grid-container').html(`
+				<div class="col-12">
+					<div class="empty-state">
+						<i class="fas fa-hand-pointer"></i>
+						<h6>Pilih kategori dulu</h6>
+						<p>Produk akan ditampilkan berdasarkan kategori dan mode transaksi.</p>
+					</div>
+				</div>
+			`);
 
-			if (/[^0-9]/.test(currentVal)) return self.value = currentVal.replace(/[^0-9]/g, '');
-
-			clearTimeout(typingTimer);
-			// $resultDiv.slideUp();
-
-
-			const category = currentCategory?.slug ?? ''
-
-
-			const isPln = category == 'token-pln'
-			// let isPln = currentCategory.includes('token') || currentCategory.includes('listrik');
-			if (isPln && currentVal.length >= 11) {
-
-				typingTimer = setTimeout(function () {
-					checkUsername({ category, target: currentVal });
-				}, doneTypingInterval);
-			}
-
-			let isGames = category == 'games'
-			const isUser = type == 'user-id';
-			const isServer = type == 'server-id';
-
-
-			if (isGames && ( (isUser && currentVal >= 5 && $('#game_server_id').val().length >= 3) || (isServer && currentVal >= 3 && $('#game_user_id').val().length >= 5) )) {
-				typingTimer = setTimeout(function () {
-					checkUsername({
-						category,
-						// code_game: $('#game-brand-select').find(':selected').data('type'),
-						code_game: $('.product-radio:checked').data('type'),
-						user_id: $('#game_user_id').val(),
-						server_id: $('#game_server_id').val(),
-					});
-				}, doneTypingInterval);
-			}
-		}
-
-		function checkUsername(data) {
-			$.ajax({
-				url: "{{ route('api.provider.check-username') }}",
-				type: "POST",
-				data: data,
-				beforeSend: function() {
-					// $loadingIcon.fadeIn();
-					$targetInput.addClass('text-muted');
-
-					$resultDiv
-					.html('<i class="fas fa-spinner fa-spin me-1"></i> Processing...')
-					.removeClass('text-success text-danger')
-					.addClass('text-muted')
-					.slideDown();
-				},
-				success: function(response) {
-					setTimeout(() => {
-						if (response?.meta?.code != 200) {
-							return $resultDiv
-								.html('<i class="fas fa-times-circle me-1"></i> ' + response?.data?.message)
-								.removeClass('text-success text-muted')
-								.addClass('text-danger');
-						}
-
-						if (response?.data?.rc === '00' || (data.category == 'games')) {
-							const data = response.data;
-							let string = data.name ?? data
-							let info = `<i class="fas fa-check-circle me-1"></i> ${string}`;
-							if (data.segment_power) {
-								string += ` | ${data.segment_power}`
-								info += ` <span class="badge bg-info text-dark ms-1">${string}</span>`;
-							}
-
-							$resultDiv
-								.html(info)
-								.removeClass('text-danger text-muted')
-								.addClass('text-success');
-
-							$('#customer-name-input').val(string)
-						} else {
-							$resultDiv
-								.html('<i class="fas fa-times-circle me-1"></i> ' + response?.data?.message)
-								.removeClass('text-success text-muted')
-								.addClass('text-danger');
-						}
-					}, 300); // ⏱️ delay kecil biar smooth
-
-					// if (response?.meta?.code != 200) {
-					// 	return $resultDiv.html('<i class="fas fa-times-circle me-1"></i> ' + response?.data?.message).removeClass('text-success').addClass('text-danger').slideDown();
-					// }
-
-					// if (response?.data?.rc === '00' || (data.category == 'games')) {
-					// 	const data = response.data;
-					// 	let info = `<i class="fas fa-check-circle me-1"></i> ${data.name ?? data}`;
-					// 	if (data.segment_power) info += ` <span class="badge bg-info text-dark ms-1">${data.segment_power}</span>`;
-					// 	$resultDiv.html(info).removeClass('text-danger').addClass('text-success').slideDown();
-					// } else {
-					// 	$resultDiv.html('<i class="fas fa-times-circle me-1"></i> ' + response?.data?.message).removeClass('text-success').addClass('text-danger').slideDown();
-					// }
-				},
-				error: function(xhr) {
-					let msg = xhr.responseJSON && xhr.responseJSON.meta.message ? xhr.responseJSON.meta.message : 'User tidak ditemukan.';
-					$resultDiv.html('<i class="fas fa-exclamation-triangle me-1"></i> ' + msg).removeClass('text-success').addClass('text-danger').slideDown();
-				},
-				complete: function() {
-					// $loadingIcon.fadeOut();
-					$targetInput.removeClass('text-muted');
-				}
-			});
+			$('#product-pagination').empty();
 		}
 
 		function loadingHTML() {
 			return `
-				<div class="col-12 text-center py-5 text-muted">
-					<i class="fas fa-circle-notch fa-spin fa-2x mb-2"></i>
-					<p class="small">Memuat produk...</p>
+				<div class="col-12">
+					<div class="empty-state">
+						<i class="fas fa-spinner fa-spin"></i>
+						<h6>Memuat produk...</h6>
+						<p>Tunggu sebentar ya.</p>
+					</div>
 				</div>
 			`;
 		}
 
-		function emptyHTML(msg) {
+		function emptyHTML(message) {
 			return `
-				<div class="col-12 text-center py-5 text-muted border rounded bg-light">
-					<i class="fas fa-box-open fa-2x mb-2"></i>
-					<p>${msg}</p>
+				<div class="col-12">
+					<div class="empty-state">
+						<i class="fas fa-box-open"></i>
+						<h6>Produk kosong</h6>
+						<p>${escapeHtml(message)}</p>
+					</div>
 				</div>
 			`;
+		}
+
+		function formatUser(user) {
+			if (!user.id) return user.text;
+
+			const balance = $(user.element).data('balance') ?? '-';
+			const isSelf = $(user.element).data('self');
+
+			return `
+				<div class="d-flex justify-content-between align-items-center">
+					<span class="${isSelf ? 'fw-bold text-info' : ''}">
+						${isSelf ? '★ ' : ''}${user.text}
+					</span>
+					<span class="badge bg-success bg-opacity-10 text-success rounded-pill">${balance}</span>
+				</div>
+			`;
+		}
+
+		function cleanProductName(name, provider) {
+			let result = String(name ?? '').trim();
+			let brand = String(provider ?? '').trim();
+
+			if (!brand || brand === '-') return result;
+
+			const pattern = new RegExp('^' + brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*[-:]?\\s*', 'i');
+			result = result.replace(pattern, '');
+
+			result = result.replace(/^mobilelegend\s*[-:]?\s*/i, '');
+			result = result.replace(/^mobile legends\s*[-:]?\s*/i, '');
+
+			return result.trim() || name;
+		}
+
+		function normalizeBillDesc(desc) {
+			if (!desc) return '-';
+
+			if (typeof desc === 'string') return desc;
+
+			if (Array.isArray(desc)) {
+				return desc.map(item => {
+					if (typeof item === 'object') return Object.values(item).join(' ');
+					return item;
+				}).join(' | ');
+			}
+
+			if (typeof desc === 'object') {
+				return Object.entries(desc)
+					.map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`)
+					.join(' | ');
+			}
+
+			return String(desc);
+		}
+
+		function money(value) {
+			const number = Number(value || 0);
+
+			if (number <= 0) return 'Rp -';
+
+			if (typeof formatRupiah === 'function') {
+				return formatRupiah(number);
+			}
+
+			return new Intl.NumberFormat('id-ID', {
+				style: 'currency',
+				currency: 'IDR',
+				maximumFractionDigits: 0
+			}).format(number);
+		}
+
+		function escapeHtml(value) {
+			return String(value ?? '')
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#039;');
+		}
+
+		function isGameCategory(category = state.category) {
+			const name = String(category?.name ?? '').toLowerCase();
+			const slug = String(category?.slug ?? '').toLowerCase();
+			const parent = String(category?.parent ?? '').toLowerCase();
+
+			return slug === 'games' ||
+			slug === 'game' ||
+			slug.includes('game') ||
+			name.includes('game') ||
+			parent.includes('game');
+		}
+
+		function gameNeedsServer(product = state.product) {
+			const brand = String(product?.brand?.name ?? '').toLowerCase();
+			const productName = String(product?.product_name ?? '').toLowerCase();
+			const sku = String(product?.buyer_sku_code ?? '').toLowerCase();
+
+			return brand.includes('mobile legends') ||
+			brand.includes('mobilelegend') ||
+			brand === 'ml' ||
+			productName.includes('mobile legends') ||
+			productName.includes('mobilelegend') ||
+			sku.includes('ml');
 		}
 	</script>
 @endpush

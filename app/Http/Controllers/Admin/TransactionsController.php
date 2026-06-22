@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use App\Services\TelegramService;
+use Illuminate\Support\Facades\Cache;
 
 use App\Services\Provider\ProviderFactory;
 
@@ -219,6 +220,10 @@ class TransactionsController extends Controller
 
 	public function store(StoreTransactionRequest $request)
 	{
+		if ($request->transaction_type === 'pascabayar') {
+			return $this->storePascabayar($request);
+		}
+
 		DB::beginTransaction();
 		try {
 			$user = User::where('id', $request->user_id)->lockForUpdate()->first();
@@ -295,19 +300,159 @@ class TransactionsController extends Controller
 		}
 	}
 
-	public function pascaBayar(Request $request)
+	private function storePascabayar(Request $request)
 	{
+		DB::beginTransaction();
+
 		try {
-			// 0709011699
-			$user = User::where('id', $request->user_id)->lockForUpdate()->first();
+			$refId = $request->inquiry_ref_id;
+			$cacheKey = "pasca_inquiry:{$request->user_id}:{$refId}";
+			$inquiry = Cache::get($cacheKey);
 
-			$product = Product::find($request->product_code);
+			if (!$inquiry) {
+				DB::rollBack();
 
-			if (!$product) {
-				return $this->errorResponse('Produk tidak ditemukan atau tidak aktif', 404);
+				return $this->errorResponse(
+					'Sesi cek tagihan sudah expired. Silahkan cek tagihan ulang.',
+					400
+				);
 			}
 
-			$refId = 'INQ-' . time() . rand(100,999);
+			if (
+				(int) $inquiry['product_id'] !== (int) $request->product_code ||
+				trim($inquiry['customer_no']) !== trim($request->target)
+				) {
+					DB::rollBack();
+
+					return $this->errorResponse(
+						'Data pembayaran tidak sama dengan hasil cek tagihan.',
+						400
+					);
+				}
+
+				$user = User::where('id', $request->user_id)->lockForUpdate()->first();
+				$product = Product::find($request->product_code);
+
+				if (!$user || !$product) {
+					DB::rollBack();
+
+					return $this->errorResponse('User atau produk tidak ditemukan.', 404);
+				}
+
+				$totalPay = (float) $inquiry['total_pay'];
+				$availableFunds = $user->balance + ($user->credit_limit ?? 0);
+
+				if ($user->role !== 'admin' && $availableFunds < $totalPay) {
+					DB::rollBack();
+
+					return $this->errorResponse(
+						"Saldo tidak mencukupi. Saldo: " . formatRupiah($user->balance),
+						400
+					);
+				}
+
+				$service = ProviderFactory::make('digiflazz');
+
+				$response = $service->transaction(
+					refId: $refId,
+					skuCode: $product->buyer_sku_code,
+					destination: $request->target,
+					commands: 'pay-pasca'
+				);
+
+				$data = $response['data'] ?? [];
+				$rc = (string) ($data['rc'] ?? '');
+
+				if ($rc !== '00') {
+					DB::rollBack();
+
+					return $this->errorResponse(
+						$data['message'] ?? 'Pembayaran tagihan gagal.',
+						400
+					);
+				}
+
+				$providerStatus = strtolower($data['status'] ?? 'success');
+
+				$deliveryStatus = str_contains($providerStatus, 'pending') ||
+				str_contains($providerStatus, 'proses') ||
+				str_contains($providerStatus, 'process')
+				? 'processing'
+				: 'success';
+
+				$transaction = Transaction::create([
+					'type' => 'pascabayar',
+					'invoice' => Transaction::generateUniqueInvoice(),
+					'ref_id' => $refId,
+
+					'user_id' => $user->id,
+					'customer_name' => $inquiry['customer_name'] ?? null,
+					'customer_no' => $request->target,
+					'zone_id' => null,
+
+					'product_id' => $product->id,
+					'product_name_snapshot' => $product->product_name,
+					'sku_snapshot' => $product->buyer_sku_code,
+
+					'buy_price' => $product->price,
+					'amount' => $inquiry['amount'],
+					'admin_fee' => $inquiry['admin_fee'],
+					'total_amount' => $totalPay,
+
+					'payment_method' => 'balance',
+					'payment_status' => 'paid',
+					'delivery_status' => $deliveryStatus,
+
+					'sn' => $data['sn'] ?? null,
+					'provider_message' => $data['message'] ?? null,
+				]);
+
+				$user->balance -= $totalPay;
+				$user->save();
+
+				BalanceHistory::create([
+					'user_id' => $user->id,
+					'type' => 'credit',
+					'amount' => $totalPay,
+					'description' => "Pembayaran tagihan {$product->product_name} - #{$transaction->invoice}",
+					'last_balance' => $user->balance,
+				]);
+
+				Cache::forget($cacheKey);
+
+				DB::commit();
+
+				return $this->successResponse(
+					$transaction,
+					'Pembayaran tagihan berhasil diproses.',
+					201
+				);
+
+			} catch (\Throwable $e) {
+				DB::rollBack();
+
+				Log::error('PAY_PASCA_ERROR', [
+					'message' => $e->getMessage(),
+					'request' => $request->all(),
+				]);
+
+				return $this->errorResponse('Gagal memproses pembayaran tagihan.', 500);
+			}
+		}
+
+	public function pascaBayar(Request $request)
+	{
+		$request->validate([
+			'user_id' => ['required', 'exists:users,id'],
+			'product_code' => ['required', 'exists:products,id'],
+			'target' => ['required', 'string', 'max:30'],
+		]);
+
+		try {
+			$user = User::findOrFail($request->user_id);
+			$product = Product::findOrFail($request->product_code);
+
+			$refId = 'PASCA-' . now('Asia/Jakarta')->format('ymdHis') . '-' . random_int(100, 999);
 
 			$service = ProviderFactory::make('digiflazz');
 
@@ -315,32 +460,123 @@ class TransactionsController extends Controller
 				refId: $refId,
 				skuCode: $product->buyer_sku_code,
 				destination: $request->target,
-				commands: 'inq-pasca' // <--- cek tagihan
+				commands: 'inq-pasca'
 			);
-			// Log::debug(json_encode($response, JSON_PRETTY_PRINT));
 
-			$data = $response['data'] ?? null;
+			$data = $response['data'] ?? [];
 
-			// RC 00 = Sukses Cek Tagihan
-			if ($data && $data['rc'] === '00') {
-				return $this->successResponse(
-					[
-						'customer_name' => $data['customer_name'] ?? '-',
-						'customer_no'   => $data['customer_no'] ?? '-',
-						'admin_fee'     => $data['admin'] ?? '-',
-						'amount'        => $data['selling_price'] ?? '-', // Tagihan asli + admin dari provider
-						'desc'          => $data['desc'] ?? '-',
-						// Anda bisa simpan ref_id ini di session/db jika diperlukan untuk pay-pasca nanti
-					],
-					message: 'Tagihan ditemukan'
-				);
+			if (($data['rc'] ?? null) !== '00') {
+				return $this->errorResponse($data['message'] ?? 'Tagihan tidak ditemukan', 400);
 			}
 
-			return $this->errorResponse($data['message'] ?? 'Tagihan tidak ditemukan', 400);
+			$adminFee = (int) ($data['admin'] ?? $data['admin_fee'] ?? 0);
+			$totalPay = (int) ($data['selling_price'] ?? $data['total'] ?? $data['amount'] ?? 0);
+			$amount = (int) ($data['price'] ?? $data['amount'] ?? max($totalPay - $adminFee, 0));
 
-		} catch (\Exception $e) {
-			Log::error('CHECK BILL ERROR', ['message' => $th->getMessage()]);
-			return $this->errorResponse('Internal server error!');
+			if ($totalPay <= 0) {
+				$totalPay = $amount + $adminFee;
+			}
+
+			$desc = $data['desc'] ?? '-';
+
+			if (is_array($desc)) {
+				$desc = collect($desc)
+				->map(function ($value, $key) {
+					if (is_array($value)) {
+						$value = json_encode($value);
+					}
+
+					return "{$key}: {$value}";
+				})
+				->implode(' | ');
+			}
+
+			$payload = [
+				'ref_id' => $refId,
+				'user_id' => $user->id,
+				'product_id' => $product->id,
+				'sku' => $product->buyer_sku_code,
+				'customer_no' => $request->target,
+				'customer_name' => $data['customer_name'] ?? '-',
+				'amount' => $amount,
+				'admin_fee' => $adminFee,
+				'total_pay' => $totalPay,
+				'desc' => $desc,
+				'raw' => $data,
+			];
+
+			Cache::put(
+				"pasca_inquiry:{$user->id}:{$refId}",
+				$payload,
+				now('Asia/Jakarta')->endOfDay()
+			);
+
+			return $this->successResponse([
+				'ref_id' => $refId,
+				'customer_name' => $payload['customer_name'],
+				'customer_no' => $payload['customer_no'],
+				'admin_fee' => $payload['admin_fee'],
+				'amount' => $payload['amount'],
+				'total_pay' => $payload['total_pay'],
+				'desc' => $payload['desc'],
+			], 'Tagihan ditemukan');
+
+		} catch (\Throwable $e) {
+			Log::error('CHECK_BILL_ERROR', [
+				'message' => $e->getMessage(),
+				'request' => $request->all(),
+			]);
+
+			return $this->errorResponse('Gagal mengecek tagihan.', 500);
 		}
 	}
+
+	// public function pascaBayar(Request $request)
+	// {
+	// 	try {
+	// 		// 0709011699
+	// 		$user = User::where('id', $request->user_id)->lockForUpdate()->first();
+
+	// 		$product = Product::find($request->product_code);
+
+	// 		if (!$product) {
+	// 			return $this->errorResponse('Produk tidak ditemukan atau tidak aktif', 404);
+	// 		}
+
+	// 		$refId = 'INQ-' . time() . rand(100,999);
+
+	// 		$service = ProviderFactory::make('digiflazz');
+
+	// 		$response = $service->transaction(
+	// 			refId: $refId,
+	// 			skuCode: $product->buyer_sku_code,
+	// 			destination: $request->target,
+	// 			commands: 'inq-pasca' // <--- cek tagihan
+	// 		);
+	// 		// Log::debug(json_encode($response, JSON_PRETTY_PRINT));
+
+	// 		$data = $response['data'] ?? null;
+
+	// 		// RC 00 = Sukses Cek Tagihan
+	// 		if ($data && $data['rc'] === '00') {
+	// 			return $this->successResponse(
+	// 				[
+	// 					'customer_name' => $data['customer_name'] ?? '-',
+	// 					'customer_no'   => $data['customer_no'] ?? '-',
+	// 					'admin_fee'     => $data['admin'] ?? '-',
+	// 					'amount'        => $data['selling_price'] ?? '-', // Tagihan asli + admin dari provider
+	// 					'desc'          => $data['desc'] ?? '-',
+	// 					// Anda bisa simpan ref_id ini di session/db jika diperlukan untuk pay-pasca nanti
+	// 				],
+	// 				message: 'Tagihan ditemukan'
+	// 			);
+	// 		}
+
+	// 		return $this->errorResponse($data['message'] ?? 'Tagihan tidak ditemukan', 400);
+
+	// 	} catch (\Exception $e) {
+	// 		Log::error('CHECK BILL ERROR', ['message' => $th->getMessage()]);
+	// 		return $this->errorResponse('Internal server error!');
+	// 	}
+	// }
 }

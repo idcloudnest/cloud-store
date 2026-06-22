@@ -29,8 +29,8 @@ return new class extends Migration
 			$table->decimal('commission', 15, 2)->default(0);
 			$table->decimal('selling_price', 15, 2)->default(0);
 
-			$table->decimal('min_value', 15, 2)->default(0)->comment('Untuk E-Wallet Min value top up');
-			$table->decimal('max_value', 15, 2)->default(0)->comment('Untuk E-Wallet Max value top up');
+			$table->decimal('min_value', 15, 2)->default(0)->comment('Untuk E-Money Min value top up');
+			$table->decimal('max_value', 15, 2)->default(0)->comment('Untuk E-Money Max value top up');
 
 			// Status
 			$table->boolean('status')->default(true);

@@ -122,9 +122,9 @@
 								</div>
 							</div>
 
-							{{-- SECTION 4: E-WALLET CONFIG --}}
-							<div id="container-e-wallet" class="row mt-3 g-3">
-								<div class="col-12"><div class="d-flex align-items-center"><hr class="flex-grow-1"><span class="mx-3 text-muted small fw-bold">Konfigurasi E-Wallet</span><hr class="flex-grow-1"></div></div>
+							{{-- SECTION 4: E-MONEY CONFIG --}}
+							<div id="container-e-money" class="row mt-3 g-3">
+								<div class="col-12"><div class="d-flex align-items-center"><hr class="flex-grow-1"><span class="mx-3 text-muted small fw-bold">Konfigurasi E-Money</span><hr class="flex-grow-1"></div></div>
 								<div class="col-md-6">
 									<label class="form-label small fw-bold text-muted">Nominal Min</label>
 									<div class="input-group">
@@ -163,8 +163,8 @@
 <script>
 	$(() => {
 		const category = "{{ $product?->category_id }}"
-		isWallet = category == 7;
-		$('#container-e-wallet').toggleClass('d-none', !isWallet);
+		isMoney = category == 7;
+		$('#container-e-money').toggleClass('d-none', !isMoney);
 
 		calculateProfit()
 	})

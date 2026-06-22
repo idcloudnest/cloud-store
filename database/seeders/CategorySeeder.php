@@ -33,8 +33,8 @@ class CategorySeeder extends Seeder
 			'sort_order' => 0,
 		]);
 		Category::create([
-			'name' => 'E-Wallet',
-			'slug' => Str::slug('E-Wallet'),
+			'name' => 'E-Money',
+			'slug' => Str::slug('E-Money'),
 			'sort_order' => 0,
 		]);
 		Category::create([

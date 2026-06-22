@@ -68,7 +68,7 @@
 							<option value="">Semua Kategori</option>
 							<option value="Games">Games</option>
 							<option value="Pulsa">Pulsa & Data</option>
-							<option value="E-Wallet">E-Wallet</option>
+							<option value="E-Money">E-Money</option>
 							<option value="PLN">Token PLN</option>
 						</select>
 					</div>

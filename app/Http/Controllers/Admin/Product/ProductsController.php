@@ -345,33 +345,224 @@ class ProductsController extends Controller
 		return $this->successResponse($brands, 'Ok.');
 	}
 
+	// public function getProductsByCategory(Request $request)
+	// {
+	// 	$productId = CategoryProduct::where('category_id', $request->category_id)->pluck('product_id');
+	// 	// $products = Product::select('id', 'brand_id', 'buyer_sku_code', 'product_name', 'price', 'selling_price', 'status')
+	// 	$products = Product::select('id', 'brand_id', 'buyer_sku_code', 'product_name', 'price', 'selling_price', 'status', 'type')
+	// 	// $products = Product::select('*')
+	// 		->with('brand:id,name')
+
+	// 		->active()
+	// 		->whereIn('id', $productId)
+	// 		->when($request->brand, fn($q) => $q->where('brand_id', $request->brand))
+	// 		->when($request->categories, fn($q) => $q->whereHas('categories', fn($q) => $q->where('category_id', $request->categories)))
+	// 		->when($request->brands, fn($q) => $q->where('brand_id', $request->brands))
+	// 		->when($request->mode === 'pascabayar', function ($q) {
+	// 			$q->whereIn(DB::raw('LOWER(type)'), ['pascabayar', 'postpaid', 'pasca']);
+	// 		})
+	// 		->when($request->mode === 'prabayar', function ($q) {
+	// 			$q->whereNotIn(DB::raw('LOWER(type)'), ['pascabayar', 'postpaid', 'pasca']);
+	// 		})
+
+	// 		->ignoreCheck()
+	// 		->orderBy('price', 'asc')
+	// 		->orderBy('product_name', 'asc')
+	// 		->paginate(20);
+
+	// 	return $this->successResponse($products, 'Ok.');
+	// }
+
+
+
+	// public function getProductsByCategory(Request $request)
+	// {
+	// 	$productId = CategoryProduct::where('category_id', $request->category_id)->pluck('product_id');
+
+	// 	$products = Product::select('id', 'brand_id', 'buyer_sku_code', 'product_name', 'price', 'selling_price', 'status', 'type')
+	// 		->with('brand:id,name')
+	// 		->active()
+	// 		->whereIn('id', $productId)
+	// 		->when($request->mode === 'pascabayar', function ($q) {
+	// 			$q->whereIn(DB::raw('LOWER(type)'), ['pascabayar', 'postpaid', 'pasca']);
+	// 		})
+	// 		->when($request->mode === 'prabayar', function ($q) {
+	// 			$q->whereNotIn(DB::raw('LOWER(type)'), ['pascabayar', 'postpaid', 'pasca']);
+	// 		})
+	// 		->when($request->brand, fn($q) => $q->where('brand_id', $request->brand))
+	// 		->when($request->categories, fn($q) => $q->whereHas('categories', fn($q) => $q->where('category_id', $request->categories)))
+	// 		->when($request->brands, fn($q) => $q->where('brand_id', $request->brands))
+	// 		->ignoreCheck()
+	// 		->orderBy('price', 'asc')
+	// 		->orderBy('product_name', 'asc')
+	// 		->paginate(20);
+
+	// 	return $this->successResponse($products, 'Ok.');
+	// }
+
+
+
+	// public function getProductsByCategory(Request $request)
+	// {
+	// 	$request->validate([
+	// 		'category_id' => ['required'],
+	// 		'mode' => ['nullable', 'in:prabayar,pascabayar'],
+	// 		'categories' => ['nullable'],
+	// 		'brands' => ['nullable'],
+	// 		'search' => ['nullable', 'string'],
+	// 		'sort' => ['nullable', 'string'],
+	// 	]);
+
+	// 	$productId = CategoryProduct::where('category_id', $request->category_id)
+	// 		->pluck('product_id');
+
+	// 	$mode = $request->mode ?? 'prabayar';
+	// 	$search = strtolower(trim($request->search ?? ''));
+	// 	$sort = $request->sort ?? 'price_asc';
+
+	// 	$query = Product::select(
+	// 			'id',
+	// 			'brand_id',
+	// 			'buyer_sku_code',
+	// 			'product_name',
+	// 			'type',
+	// 			'price',
+	// 			'selling_price',
+	// 			'status'
+	// 		)
+	// 		->with('brand:id,name')
+	// 		->active()
+	// 		->whereIn('id', $productId)
+	// 		->when($mode === 'pascabayar', function ($q) {
+	// 			$q->whereIn(DB::raw('LOWER(type)'), [
+	// 				'pascabayar',
+	// 				'pasca',
+	// 				'postpaid',
+	// 				'tagihan'
+	// 			]);
+	// 		})
+	// 		->when($mode === 'prabayar', function ($q) {
+	// 			$q->whereNotIn(DB::raw('LOWER(type)'), [
+	// 				'pascabayar',
+	// 				'pasca',
+	// 				'postpaid',
+	// 				'tagihan'
+	// 			]);
+	// 		})
+	// 		->when($request->categories, function ($q) use ($request) {
+	// 			$q->whereHas('categories', function ($categoryQuery) use ($request) {
+	// 				$categoryQuery->where('category_id', $request->categories);
+	// 			});
+	// 		})
+	// 		->when($request->brands, function ($q) use ($request) {
+	// 			$q->where('brand_id', $request->brands);
+	// 		})
+	// 		->when($search, function ($q) use ($search) {
+	// 			$q->where(function ($searchQuery) use ($search) {
+	// 				$searchQuery
+	// 					->where(DB::raw('LOWER(product_name)'), 'LIKE', "%{$search}%")
+	// 					->orWhere(DB::raw('LOWER(buyer_sku_code)'), 'LIKE', "%{$search}%");
+	// 			});
+	// 		})
+	// 		->ignoreCheck();
+
+	// 	match ($sort) {
+	// 		'price_desc' => $query->orderBy('selling_price', 'desc')->orderBy('product_name', 'asc'),
+	// 		'name_asc' => $query->orderBy('product_name', 'asc'),
+	// 		default => $query->orderBy('selling_price', 'asc')->orderBy('product_name', 'asc'),
+	// 	};
+
+	// 	$products = $query->paginate(20);
+
+	// 	return $this->successResponse($products, 'Ok.');
+	// }
+
+
+
+
 	public function getProductsByCategory(Request $request)
 	{
-		// $request->validate(['category' => 'required']);
+		$request->validate([
+			'category_id' => ['required'],
+			'mode' => ['nullable', 'in:prabayar,pascabayar'],
+			'categories' => ['nullable'],
+			'brands' => ['nullable'],
+			'search' => ['nullable', 'string'],
+			'sort' => ['nullable', 'string'],
+		]);
 
-		$productId = CategoryProduct::where('category_id', $request->category_id)->pluck('product_id');
-		$products = Product::select('id', 'brand_id', 'buyer_sku_code', 'product_name', 'price', 'selling_price', 'status')
-		// $products = Product::select('*')
+		$productId = CategoryProduct::where('category_id', $request->category_id)
+			->pluck('product_id');
+
+		$mode = $request->mode ?? 'prabayar';
+		$search = strtolower(trim($request->search ?? ''));
+		$sort = $request->sort ?? 'nominal_asc';
+
+		$pascaTypes = [
+			'pascabayar',
+			'pasca',
+			'postpaid',
+			'tagihan',
+		];
+
+		$query = Product::select(
+				'id',
+				'brand_id',
+				'buyer_sku_code',
+				'product_name',
+				'type',
+				'price',
+				'selling_price',
+				'status'
+			)
 			->with('brand:id,name')
-			// ->with('category_product:id,name')
 			->active()
 			->whereIn('id', $productId)
-			// ->when($request->mode === 'pascabayar', fn($q) => $q->where('type', 'pascabayar'))
-			->when($request->brand, fn($q) => $q->where('brand_id', $request->brand))
-			// ->when(!$request->brand, fn($q) => $q->where('category_id', $request->category))
+			->when($mode === 'pascabayar', function ($q) use ($pascaTypes) {
+				$q->whereIn(DB::raw('LOWER(type)'), $pascaTypes);
+			})
+			->when($mode === 'prabayar', function ($q) use ($pascaTypes) {
+				$q->whereNotIn(DB::raw('LOWER(type)'), $pascaTypes);
+			})
+			->when($request->categories, function ($q) use ($request) {
+				$q->whereHas('categories', function ($categoryQuery) use ($request) {
+					$categoryQuery->where('category_id', $request->categories);
+				});
+			})
+			->when($request->brands, function ($q) use ($request) {
+				$q->where('brand_id', $request->brands);
+			})
+			->when($search, function ($q) use ($search) {
+				$q->where(function ($searchQuery) use ($search) {
+					$searchQuery
+						->where(DB::raw('LOWER(product_name)'), 'LIKE', "%{$search}%")
+						->orWhere(DB::raw('LOWER(buyer_sku_code)'), 'LIKE', "%{$search}%");
+				});
+			})
+			->ignoreCheck();
 
-			->when($request->categories, fn($q) => $q->whereHas('categories', fn($q) => $q->where('category_id', $request->categories)))
-			->when($request->brands, fn($q) => $q->where('brand_id', $request->brands))
+		match ($sort) {
+			'price_asc' => $query
+				->orderByRaw('CAST(price AS UNSIGNED) ASC')
+				->orderByRaw("CAST(REGEXP_SUBSTR(product_name, '[0-9]+') AS UNSIGNED) ASC")
+				->orderBy('product_name', 'asc'),
 
-			->ignoreCheck()
-			->orderBy('price', 'asc')
-			->orderBy('product_name', 'asc')
-			->paginate(20);
-			// ->get(['id','buyer_sku_code', 'product_name', 'price', 'selling_price']);
+			'price_desc' => $query
+				->orderByRaw('CAST(price AS UNSIGNED) DESC')
+				->orderByRaw("CAST(REGEXP_SUBSTR(product_name, '[0-9]+') AS UNSIGNED) ASC")
+				->orderBy('product_name', 'asc'),
 
-		// $products->getCollection()->transform(function ($item) {
-		// 	return $item->append('label');
-		// });
+			'name_asc' => $query
+				->orderBy('product_name', 'asc'),
+
+			default => $query
+				->orderByRaw("CASE WHEN REGEXP_SUBSTR(product_name, '[0-9]+') IS NULL THEN 1 ELSE 0 END ASC")
+				->orderByRaw("CAST(REGEXP_SUBSTR(product_name, '[0-9]+') AS UNSIGNED) ASC")
+				->orderByRaw('CAST(price AS UNSIGNED) ASC')
+				->orderBy('product_name', 'asc'),
+		};
+
+		$products = $query->paginate(20);
 
 		return $this->successResponse($products, 'Ok.');
 	}

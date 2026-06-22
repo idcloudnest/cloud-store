@@ -740,7 +740,7 @@
 					[
 						'icon' => 'fa-wallet',
 						'title' => 'Lakukan Pembayaran',
-						'desc' => 'Pilih metode pembayaran yang tersedia seperti QRIS, e-wallet, virtual account, atau saldo member.'
+						'desc' => 'Pilih metode pembayaran yang tersedia seperti QRIS, e-money, virtual account, atau saldo member.'
 					],
 					[
 						'icon' => 'fa-circle-check',

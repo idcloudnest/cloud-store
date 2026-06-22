@@ -17,9 +17,11 @@ class Transaction extends Model
 	{
 		static::creating(function ($transaction) {
 			if (empty($transaction->invoice)) {
-				$invoice = static::generateUniqueInvoice();
-				$transaction->invoice = $invoice;
-				$transaction->ref_id = $invoice;
+				$transaction->invoice = static::generateUniqueInvoice();
+			}
+
+			if (empty($transaction->ref_id)) {
+				$transaction->ref_id = $transaction->invoice;
 			}
 		});
 	}
@@ -44,9 +46,9 @@ class Transaction extends Model
 	}
 
 	/**
-	 * Accessor untuk membuat atribut baru bernama 'total_rupiah'
-	 * Laravel 9 ke atas
-	 */
+	* Accessor untuk membuat atribut baru bernama 'total_rupiah'
+	* Laravel 9 ke atas
+	*/
 	protected function totalRupiah(): Attribute
 	{
 		return Attribute::make(

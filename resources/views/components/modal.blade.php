@@ -32,7 +32,7 @@
 								<button type="button" class="btn btn-outline-secondary w-100 py-3"><i class="fas fa-qrcode mb-1"></i><br>QRIS</button>
 							</div>
 							<div class="col-4">
-								<button type="button" class="btn btn-outline-secondary w-100 py-3"><i class="fas fa-wallet mb-1"></i><br>E-Wallet</button>
+								<button type="button" class="btn btn-outline-secondary w-100 py-3"><i class="fas fa-wallet mb-1"></i><br>E-Money</button>
 							</div>
 							<div class="col-4">
 								<button type="button" class="btn btn-outline-secondary w-100 py-3"><i class="fas fa-university mb-1"></i><br>Bank</button>

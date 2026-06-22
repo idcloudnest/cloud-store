@@ -24,32 +24,53 @@ class StoreTransactionRequest extends FormRequest
 	public function rules(): array
 	{
 		return [
+			'transaction_type' => ['required', 'in:prabayar,pascabayar'],
+			'inquiry_ref_id' => ['required_if:transaction_type,pascabayar', 'nullable', 'string'],
+
 			'category' => ['required', 'string'],
 
-			// Wajib hanya jika category = games
 			'game_user_id' => ['required_if:category,games', 'string'],
 			'game_server_id' => ['required_if:category,games', 'string'],
 
 			'product_code' => ['required', 'string', 'max:50'],
 
-			// Wajib jika BUKAN games
 			'target' => [
 				'exclude_if:category,games',
-				// 'required_unless:category_id,games',
 				'required',
 				'string',
-				'max:20'
+				'max:30'
 			],
-
-			// 'category_id'  => ['required', 'string'],
-			// 'user_id'      => ['required', 'string'],
-			// 'product_code' => ['required', 'string', 'max:50'],
-			// 'target'       => ['required', 'string', 'max:20'], // Max 20 agar tidak terlalu panjang
-
-			// Opsional: Validasi PIN Transaksi jika ada
-			// 'pin' => ['required', 'digits:6'],
 		];
 	}
+	// public function rules(): array
+	// {
+	// 	return [
+	// 		'category' => ['required', 'string'],
+
+	// 		// Wajib hanya jika category = games
+	// 		'game_user_id' => ['required_if:category,games', 'string'],
+	// 		'game_server_id' => ['required_if:category,games', 'string'],
+
+	// 		'product_code' => ['required', 'string', 'max:50'],
+
+	// 		// Wajib jika BUKAN games
+	// 		'target' => [
+	// 			'exclude_if:category,games',
+	// 			// 'required_unless:category_id,games',
+	// 			'required',
+	// 			'string',
+	// 			'max:20'
+	// 		],
+
+	// 		// 'category_id'  => ['required', 'string'],
+	// 		// 'user_id'      => ['required', 'string'],
+	// 		// 'product_code' => ['required', 'string', 'max:50'],
+	// 		// 'target'       => ['required', 'string', 'max:20'], // Max 20 agar tidak terlalu panjang
+
+	// 		// Opsional: Validasi PIN Transaksi jika ada
+	// 		// 'pin' => ['required', 'digits:6'],
+	// 	];
+	// }
 
 	/**
 	 * Custom message for validation
@@ -73,13 +94,25 @@ class StoreTransactionRequest extends FormRequest
 	public function attributes(): array
 	{
 		return [
-			'category'  => 'Kategori',
-			'game_user_id'      => 'User ID',
-			'game_server_id'    => 'Server ID',
+			'transaction_type' => 'Tipe Transaksi',
+			'inquiry_ref_id' => 'Ref ID Inquiry',
+			'category' => 'Kategori',
+			'game_user_id' => 'User ID',
+			'game_server_id' => 'Server ID',
 			'product_code' => 'Produk',
-			'target'       => 'Nomor Tujuan',
+			'target' => 'Nomor Tujuan',
 		];
 	}
+	// public function attributes(): array
+	// {
+	// 	return [
+	// 		'category'  => 'Kategori',
+	// 		'game_user_id'      => 'User ID',
+	// 		'game_server_id'    => 'Server ID',
+	// 		'product_code' => 'Produk',
+	// 		'target'       => 'Nomor Tujuan',
+	// 	];
+	// }
 
 	/**
 	 * OVERRIDE: Agar format error sesuai pattern JSON Anda.
