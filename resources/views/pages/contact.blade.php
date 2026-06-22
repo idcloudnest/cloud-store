@@ -5,7 +5,7 @@
 
 	$whatsappNumber = '62895320894991';
 	$whatsappLabel = '0895-3208-94991';
-	$emailSupport = 'admin@idcloudnest.com';
+	$emailSupport = config('mail.from.address', 'support@idcloudnest.com');
 	$telegramChannel = '@IDCloudStore';
 
 	$homeUrl = Route::has('pages.home') ? route('pages.home') : url('/');

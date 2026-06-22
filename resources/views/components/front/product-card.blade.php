@@ -22,6 +22,7 @@
 	if (!$url) {
 		$url = Route::has('member.transaction.order') ? route('member.transaction.order', $slug) : url('/order/' . $slug);
 	}
+	$url = "#$slug";
 
 	$badge = $badge ?? data_get($item, 'badge') ?? 'Top up';
 	$cardClass = $variant === 'popular' ? 'gs-product-card--popular' : '';

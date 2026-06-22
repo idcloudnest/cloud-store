@@ -135,7 +135,8 @@
 		</div>
 
 		<div class="card-footer bg-light text-center py-3 border-top-0">
-			<small class="text-muted">Belum punya akun? <a href="{{ route('auth.register') }}" class="text-decoration-none fw-bold" style="color: #667eea;">Daftar</a></small>
+			{{-- <small class="text-muted">Belum punya akun? <a href="{{ route('auth.register') }}" class="text-decoration-none fw-bold" style="color: #667eea;">Daftar</a></small> --}}
+			<small class="text-muted">Belum punya akun? <a href="#register" class="text-decoration-none fw-bold" style="color: #667eea;">Daftar</a></small>
 		</div>
 	</div>
 @endsection

@@ -43,20 +43,21 @@
 						<i class="fa-solid fa-circle-user"></i>
 					</a>
 				@else
-					<a href="{{ $dashboardUrl }}" class="gs-icon-btn" title="{{ $userName }}" aria-label="Dashboard">
+					{{-- <a href="{{ $dashboardUrl }}" class="gs-icon-btn" title="{{ $userName }}" aria-label="Dashboard"> --}}
+					<a href="#user" class="gs-icon-btn" title="{{ $userName }}" aria-label="Dashboard">
 						<i class="fa-solid fa-circle-user"></i>
 					</a>
 				@endguest
 
-				<a href="{{ $dashboardUrl }}" class="gs-coin-btn" aria-label="Saldo">
+				<a href="#coin" class="gs-coin-btn" aria-label="Saldo">
 					<span class="gs-coin-dot"></span>
 					<span>{{ $coinText }}</span>
 				</a>
 
 				@guest
-					<a href="{{ $registerUrl }}" class="gs-reseller-btn">Daftar Reseller</a>
+					{{-- <a href="{{ $registerUrl }}" class="gs-reseller-btn">Daftar Reseller</a> --}}
 				@else
-					<a href="#reseller" class="gs-reseller-btn">Daftar Reseller</a>
+					{{-- <a href="#reseller" class="gs-reseller-btn">Daftar Reseller</a> --}}
 				@endguest
 			</div>
 		</div>

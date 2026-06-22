@@ -9,7 +9,7 @@
 	$sampleTopup = collect([
 		['name' => 'MLBB', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/1d8ad8/ffffff?text=MLBB'],
 		['name' => 'PUBG Mobile', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/2b5f8f/ffffff?text=PUBG'],
-		['name' => 'FF', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/654ea3/ffffff?text=FF'],
+		['name' => 'FREE FIRE', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/654ea3/ffffff?text=FREE+FIRE'],
 		['name' => 'METAL SLUG', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/d8742d/ffffff?text=METAL+SLUG'],
 		['name' => 'GARENA UNDAWN', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/203047/ffffff?text=UNDAWN'],
 		['name' => 'CALL OF DUTY', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/475569/ffffff?text=CODM'],

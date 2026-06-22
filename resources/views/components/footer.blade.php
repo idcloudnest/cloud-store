@@ -3,7 +3,7 @@
 
 	$whatsappNumber = preg_replace('/\D+/', '', config('services.whatsapp.number', '62895320894991'));
 	$whatsappLabel = config('services.whatsapp.label', '0895-3208-94991');
-	$emailSupport = config('mail.from.address', 'admin@idcloudnest.com');
+	$emailSupport = config('mail.from.address', 'support@idcloudnest.com');
 
 	$homeUrl = url('/');
 	$invoiceUrl = Route::has('pages.invoices') ? route('pages.invoices') : '#';
