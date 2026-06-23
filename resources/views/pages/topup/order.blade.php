@@ -415,7 +415,7 @@
 
 				{{-- Icon (Hanya di Tablet/PC) --}}
 				<div class="rounded-3 align-items-center justify-content-center flex-shrink-0 sticky-icon-box d-none d-sm-flex">
-					<img src="{{ asset('cloudnest.png') }}" id="sticky-img" width="30" alt="Icon">
+					<img src="{{ asset('images/cloudnest.png') }}" id="sticky-img" width="30" alt="Icon">
 				</div>
 
 				{{-- Wrapper Teks (Full Width) --}}

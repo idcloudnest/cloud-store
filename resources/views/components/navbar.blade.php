@@ -10,7 +10,7 @@
 	$userName = auth()->check() ? auth()->user()->name : 'Guest';
 	$userBalance = auth()->check() ? (auth()->user()->balance ?? auth()->user()->saldo ?? 0) : 0;
 	$coinText = is_numeric($userBalance) ? number_format($userBalance, 0, ',', '.') : $userBalance;
-	$logo = asset('cloudnest.png');
+	$logo = asset('images/cloudnest.png');
 	$brandWords = preg_split('/\s+/', trim($appName));
 	$brandLast = count($brandWords) > 1 ? array_pop($brandWords) : '';
 	$brandFirst = count($brandWords) ? implode(' ', $brandWords) : $appName;

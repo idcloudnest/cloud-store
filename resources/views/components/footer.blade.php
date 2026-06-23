@@ -57,7 +57,7 @@
 					<div class="cn-footer-brand">
 						<div class="cn-footer-logo-wrap">
 							<img
-								src="{{ asset('cloudnest.png') }}"
+								src="{{ asset('images/cloudnest.png') }}"
 								class="cn-footer-logo"
 								alt="{{ $appName }}"
 								onerror="this.style.display='none'">

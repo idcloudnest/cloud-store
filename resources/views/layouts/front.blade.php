@@ -7,6 +7,8 @@
 	@php $appName = config('app.name', 'Cloud Nest Store'); @endphp
 	<title>@yield('title', $appName)</title>
 
+	<meta name="description" content="Cloud Nest Store menyediakan top up game, pulsa, paket data, token PLN, voucher, e-wallet, BPJS, PDAM, dan PPOB digital dengan proses cepat, aman, dan pembayaran mudah.">
+
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -401,13 +403,13 @@
 			inset: 42% 0 0;
 			background: linear-gradient(180deg, transparent, rgba(0,0,0,.78));
 		}
-		.gs-popular-meta {
+		/* .gs-popular-meta {
 			position: absolute;
 			left: 14px;
 			right: 14px;
 			bottom: 14px;
 			z-index: 2;
-		}
+		} */
 		.gs-popular-title { display: block; color: #fff; font-weight: 800; font-size: .95rem; text-shadow: 0 2px 8px rgba(0,0,0,.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 		.gs-popular-badge {
 			display: inline-flex;

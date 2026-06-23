@@ -22,7 +22,7 @@
 
 	{{-- Favicon --}}
 	{{-- <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='60' fill='%234f46e5'/%3E%3Ctext x='50' y='66' font-size='55' font-family='Arial Black, Roboto Black, sans-serif-black' font-weight='900' text-anchor='middle' fill='white'%3ECNS%3C/text%3E%3C/svg%3E"> --}}
-	<link rel="icon" type="image/png" href="{{ asset('cloudnest.png') }}" sizes="32x32">
+	<link rel="icon" type="image/png" href="{{ asset('images/cloudnest.png') }}" sizes="32x32">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">

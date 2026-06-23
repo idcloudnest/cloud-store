@@ -1,16 +1,52 @@
 @extends('layouts.front')
 
-@section('title', 'Top Up Game & PPOB')
+@section('title', 'Cloud Nest Store - Top Up Game, Pulsa, Token PLN & PPOB Digital')
 
 @section('content')
+<!-- Tambahkan ini sedikit agar layout Grid-nya tidak jebol -->
+{{-- <style>
+    .nest-grid-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    @media (min-width: 640px) { .nest-grid-container { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 768px) { .nest-grid-container { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 1024px) { .nest-grid-container { grid-template-columns: repeat(5, 1fr); } }
+</style> --}}
+<style>
+    /* CSS Grid yang lebih rapi */
+    .nest-grid-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem; /* Jarak antar kartu lebih lega */
+        margin-top: 1rem;
+    }
+
+    /* Responsive breakpoints */
+    @media (min-width: 640px) {
+        .nest-grid-container { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    }
+    @media (min-width: 768px) {
+        .nest-grid-container { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (min-width: 1024px) {
+        .nest-grid-container { grid-template-columns: repeat(5, 1fr); }
+    }
+    @media (min-width: 1280px) {
+        .nest-grid-container { grid-template-columns: repeat(6, 1fr); }
+    }
+</style>
+
 @php
 	$allProducts = collect($products ?? $catalogProducts ?? []);
 
 	$sampleTopup = collect([
-		['name' => 'MLBB', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/1d8ad8/ffffff?text=MLBB'],
-		['name' => 'PUBG Mobile', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/2b5f8f/ffffff?text=PUBG'],
-		['name' => 'FREE FIRE', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/654ea3/ffffff?text=FREE+FIRE'],
-		['name' => 'METAL SLUG', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/d8742d/ffffff?text=METAL+SLUG'],
+		// ['name' => 'MLBB', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/1d8ad8/ffffff?text=MLBB'],
+		['name' => 'MLBB', 'category' => 'Top Up', 'image' => 'https://sc-static-assets.bmsecure.id/provider/MobileLegend.png'],
+		['name' => 'PUBG Mobile', 'category' => 'Top Up', 'image' => 'https://sc-static-assets.bmsecure.id/provider/PUBG.png'],
+		['name' => 'FREE FIRE', 'category' => 'Top Up', 'image' => 'https://sc-static-assets.bmsecure.id/provider/FreeFire.png'],
+		['name' => 'METAL SLUG', 'category' => 'Top Up', 'image' => 'https://storage.googleapis.com/static-sbf/fastpay_mobile/logo_produk/game/msa.jpg'],
 		['name' => 'GARENA UNDAWN', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/203047/ffffff?text=UNDAWN'],
 		['name' => 'CALL OF DUTY', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/475569/ffffff?text=CODM'],
 		['name' => 'POINT BLANK', 'category' => 'Top Up', 'image' => 'https://placehold.co/320x320/3f3f46/ffffff?text=PB'],
@@ -143,17 +179,36 @@
 		</div>
 	</section>
 
-	<section class="gs-section">
-		<h2 class="gs-section-title">🔥 Game Populer</h2>
+	{{-- <section class="gs-section">
+		<h2 class="gs-section-title" style="color: white; font-weight: bold; font-size: 1.5rem; margin-bottom: 1.5rem;">
+			🔥 Game Populer
+		</h2>
 		<div class="gs-popular-row">
 			@foreach($popularItems as $item)
 				@include('pages.product-card', ['item' => $item, 'type' => 'top-up', 'variant' => 'popular', 'badge' => 'Top up'])
 			@endforeach
 		</div>
-	</section>
+	</section> --}}
+
+    <section class="gs-section" style="margin-top: 2rem;">
+        <h2 class="gs-section-title" style="color: white; font-weight: bold; font-size: 1.5rem; margin-bottom: 1.5rem;">
+            🔥 Game Populer
+        </h2>
+
+        <!-- Panggil Custom Grid Baru -->
+        <div class="nest-grid-container">
+            @foreach($popularItems as $item)
+                {{-- @include('components.front.product-card', ['item' => $item, 'badge' => 'Top up']) --}}
+                @include('pages.product-card', ['item' => $item, 'type' => 'top-up', 'variant' => 'popular', 'badge' => 'Top up'])
+            @endforeach
+        </div>
+    </section>
 </div>
 
-<div class="gs-red-divider" aria-hidden="true"></div>
+<div style="position: relative; width: 100%; height: 3px; margin: 3rem 0;">
+	<div style="position: absolute; inset: 0; background: linear-gradient(to right, transparent, #ef4444, transparent); filter: blur(2px); opacity: 0.8;"></div>
+	<div style="position: absolute; inset: 0; background: linear-gradient(to right, transparent, #dc2626, #22d3ee, #dc2626, transparent); box-shadow: 0 0 15px rgba(239,68,68,0.9);"></div>
+</div>
 
 <div class="container">
 	<div class="gs-filter-pills">
@@ -163,36 +218,41 @@
 		<button type="button" class="gs-filter-btn" data-filter-target="pembayaran">Pembayaran</button>
 	</div>
 
-	<section class="gs-section js-product-section" data-section-type="top-up">
-		<h2 class="gs-section-title">Top up game</h2>
-		<div class="gs-product-grid">
+	<section class="gs-section js-product-section" data-section-type="top-up" style="margin-bottom: 3rem;">
+		<h2 class="gs-section-title" style="color: white; font-weight: 600; font-size: 1.25rem; margin-bottom: 1rem;">Top up game</h2>
+
+		<div class="nest-grid-container">
 			@foreach($topupItems as $item)
+				{{-- @include('components.front.product-card', ['item' => $item, 'type' => 'top-up']) --}}
 				@include('pages.product-card', ['item' => $item, 'type' => 'top-up'])
 			@endforeach
 		</div>
 	</section>
 
-	<section class="gs-section js-product-section" data-section-type="voucher">
-		<h2 class="gs-section-title">Bioskop</h2>
-		<div class="gs-product-grid">
+	<section class="gs-section js-product-section" data-section-type="voucher" style="margin-bottom: 3rem;">
+		<h2 class="gs-section-title" style="color: white; font-weight: 600; font-size: 1.25rem; margin-bottom: 1rem;">Bioskop</h2>
+
+		<div class="nest-grid-container">
 			@foreach($cinemaItems as $item)
 				@include('pages.product-card', ['item' => $item, 'type' => 'voucher'])
 			@endforeach
 		</div>
 	</section>
 
-	<section class="gs-section js-product-section" data-section-type="pembayaran">
-		<h2 class="gs-section-title">E-Toll</h2>
-		<div class="gs-product-grid">
+	<section class="gs-section js-product-section" data-section-type="pembayaran" style="margin-bottom: 3rem;">
+		<h2 class="gs-section-title" style="color: white; font-weight: 600; font-size: 1.25rem; margin-bottom: 1rem;">E-Toll</h2>
+
+		<div class="nest-grid-container">
 			@foreach($etollItems as $item)
 				@include('pages.product-card', ['item' => $item, 'type' => 'pembayaran'])
 			@endforeach
 		</div>
 	</section>
 
-	<section class="gs-section js-product-section" data-section-type="pembayaran">
-		<h2 class="gs-section-title">Tagihan</h2>
-		<div class="gs-product-grid">
+	<section class="gs-section js-product-section" data-section-type="pembayaran" style="margin-bottom: 3rem;">
+		<h2 class="gs-section-title" style="color: white; font-weight: 600; font-size: 1.25rem; margin-bottom: 1rem;">Tagihan</h2>
+
+		<div class="nest-grid-container">
 			@foreach($billItems as $item)
 				@include('pages.product-card', ['item' => $item, 'type' => 'pembayaran'])
 			@endforeach
